@@ -7,11 +7,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	_ "github.com/mutecomm/go-sqlcipher" // We require go sqlcipher that overrides default implementation
-	"github.com/status-im/migrate/v4"
-	"github.com/status-im/migrate/v4/database/sqlcipher"
-	bindata "github.com/status-im/migrate/v4/source/go_bindata"
-	mvdsmigrations "github.com/vacp2p/mvds/persistenceutil"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	bindata "github.com/golang-migrate/migrate/v4/source/go_bindata"
 )
 
 // The default number of kdf iterations in sqlcipher (from version 3.0.0)
@@ -104,8 +102,8 @@ func ApplyMigrations(db *sql.DB, assetNames []string, assetGetter func(name stri
 		return errors.Wrap(err, "failed to create migration source")
 	}
 
-	driver, err := sqlcipher.WithInstance(db, &sqlcipher.Config{
-		MigrationsTable: "status_protocol_go_" + sqlcipher.DefaultMigrationsTable,
+	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{
+		MigrationsTable: "status_protocol_go_" + sqlite3.DefaultMigrationsTable,
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to create driver")
@@ -114,7 +112,7 @@ func ApplyMigrations(db *sql.DB, assetNames []string, assetGetter func(name stri
 	m, err := migrate.NewWithInstance(
 		"go-bindata",
 		source,
-		"sqlcipher",
+		"sqlite3",
 		driver,
 	)
 	if err != nil {
@@ -130,11 +128,6 @@ func ApplyMigrations(db *sql.DB, assetNames []string, assetGetter func(name stri
 
 func Migrate(database *sql.DB) error {
 	// Apply migrations for all components.
-	err := mvdsmigrations.Migrate(database)
-	if err != nil {
-		return errors.Wrap(err, "failed to apply mvds migrations")
-	}
-
 	migrationNames, migrationGetter, err := prepareMigrations(defaultMigrations)
 	if err != nil {
 		return errors.Wrap(err, "failed to prepare status-go/protocol migrations")

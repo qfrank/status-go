@@ -26,6 +26,16 @@ func InitializeDB(path string) (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	db2, err := sqlite.OpenUnecryptedDB(path + "some-other")
+	if err != nil {
+		return nil, err
+	}
+	err = migrations.Migrate(db2)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Database{db: db}, nil
 }
 

@@ -126,8 +126,11 @@ github.com/gogo/protobuf/proto
 # github.com/golang-migrate/migrate/v4 v4.8.0
 github.com/golang-migrate/migrate/v4
 github.com/golang-migrate/migrate/v4/database
+github.com/golang-migrate/migrate/v4/database/postgres
+github.com/golang-migrate/migrate/v4/database/sqlite3
 github.com/golang-migrate/migrate/v4/internal/url
 github.com/golang-migrate/migrate/v4/source
+github.com/golang-migrate/migrate/v4/source/go_bindata
 # github.com/golang/mock v1.4.1
 github.com/golang/mock/gomock
 # github.com/golang/protobuf v1.3.4
@@ -290,6 +293,8 @@ github.com/mattn/go-isatty
 github.com/mattn/go-pointer
 # github.com/mattn/go-runewidth v0.0.6
 github.com/mattn/go-runewidth
+# github.com/mattn/go-sqlite3 v1.12.0
+github.com/mattn/go-sqlite3
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
 github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1
@@ -316,8 +321,6 @@ github.com/multiformats/go-multihash
 github.com/multiformats/go-multistream
 # github.com/multiformats/go-varint v0.0.5
 github.com/multiformats/go-varint
-# github.com/mutecomm/go-sqlcipher v0.0.0-20190227152316-55dbde17881f
-github.com/mutecomm/go-sqlcipher
 # github.com/okzk/sdnotify v0.0.0-20180710141335-d9becc38acbd
 github.com/okzk/sdnotify
 # github.com/olekukonko/tablewriter v0.0.2
@@ -370,12 +373,6 @@ github.com/status-im/keycard-go/derivationpath
 github.com/status-im/markdown
 github.com/status-im/markdown/ast
 github.com/status-im/markdown/parser
-# github.com/status-im/migrate/v4 v4.6.2-status.2
-github.com/status-im/migrate/v4
-github.com/status-im/migrate/v4/database/postgres
-github.com/status-im/migrate/v4/database/sqlcipher
-github.com/status-im/migrate/v4/internal/url
-github.com/status-im/migrate/v4/source/go_bindata
 # github.com/status-im/rendezvous v1.3.0
 github.com/status-im/rendezvous
 github.com/status-im/rendezvous/protocol
@@ -413,17 +410,8 @@ github.com/tsenart/tb
 github.com/tyler-smith/go-bip39
 github.com/tyler-smith/go-bip39/wordlists
 # github.com/vacp2p/mvds v0.0.23
-github.com/vacp2p/mvds/node
-github.com/vacp2p/mvds/node/migrations
-github.com/vacp2p/mvds/peers
-github.com/vacp2p/mvds/peers/migrations
-github.com/vacp2p/mvds/persistenceutil
 github.com/vacp2p/mvds/protobuf
 github.com/vacp2p/mvds/state
-github.com/vacp2p/mvds/state/migrations
-github.com/vacp2p/mvds/store
-github.com/vacp2p/mvds/store/migrations
-github.com/vacp2p/mvds/transport
 # github.com/wealdtech/go-ens/v3 v3.3.0
 github.com/wealdtech/go-ens/v3
 github.com/wealdtech/go-ens/v3/contracts/auctionregistrar
@@ -486,7 +474,6 @@ golang.org/x/lint
 golang.org/x/lint/golint
 # golang.org/x/net v0.0.0-20191119073136-fc4aabc6c914
 golang.org/x/net/bpf
-golang.org/x/net/context
 golang.org/x/net/html
 golang.org/x/net/html/atom
 golang.org/x/net/html/charset

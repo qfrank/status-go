@@ -9,14 +9,10 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
-	datasyncnode "github.com/vacp2p/mvds/node"
-	datasyncproto "github.com/vacp2p/mvds/protobuf"
 	"go.uber.org/zap"
 
 	"github.com/status-im/status-go/eth-node/crypto"
 	"github.com/status-im/status-go/eth-node/types"
-	"github.com/status-im/status-go/protocol/datasync"
-	datasyncpeer "github.com/status-im/status-go/protocol/datasync/peer"
 	"github.com/status-im/status-go/protocol/encryption"
 	"github.com/status-im/status-go/protocol/encryption/sharedsecret"
 	"github.com/status-im/status-go/protocol/protobuf"
@@ -45,7 +41,6 @@ type SentMessage struct {
 
 type MessageProcessor struct {
 	identity  *ecdsa.PrivateKey
-	datasync  *datasync.DataSync
 	protocol  *encryption.Protocol
 	transport transport.Transport
 	logger    *zap.Logger
@@ -74,37 +69,13 @@ func NewMessageProcessor(
 	logger *zap.Logger,
 	features FeatureFlags,
 ) (*MessageProcessor, error) {
-	dataSyncTransport := datasync.NewNodeTransport()
-	dataSyncNode, err := datasyncnode.NewPersistentNode(
-		database,
-		dataSyncTransport,
-		datasyncpeer.PublicKeyToPeerID(identity.PublicKey),
-		datasyncnode.BATCH,
-		datasync.CalculateSendTime,
-		logger,
-	)
-	if err != nil {
-		return nil, err
-	}
-	ds := datasync.New(dataSyncNode, dataSyncTransport, features.Datasync, logger)
-
 	p := &MessageProcessor{
 		identity:      identity,
-		datasync:      ds,
 		protocol:      enc,
 		transport:     transport,
 		logger:        logger,
 		ephemeralKeys: make(map[string]*ecdsa.PrivateKey),
 		featureFlags:  features,
-	}
-
-	// Initializing DataSync is required to encrypt and send messages.
-	// With DataSync enabled, messages are added to the DataSync
-	// but actual encrypt and send calls are postponed.
-	// sendDataSync is responsible for encrypting and sending postponed messages.
-	if features.Datasync {
-		ds.Init(p.sendDataSync)
-		ds.Start(300 * time.Millisecond)
 	}
 
 	return p, nil
@@ -115,7 +86,6 @@ func (p *MessageProcessor) Stop() {
 		close(c)
 	}
 	p.sentMessagesSubscriptions = nil
-	p.datasync.Stop() // idempotent op
 }
 
 func (p *MessageProcessor) SetHandleSharedSecrets(handler func([]*sharedsecret.Secret) error) {
@@ -202,14 +172,7 @@ func (p *MessageProcessor) sendPrivate(
 	// earlier than the scheduled
 	p.notifyOnScheduledMessage(rawMessage)
 
-	if p.featureFlags.Datasync && rawMessage.ResendAutomatically {
-		// No need to call transport tracking.
-		// It is done in a data sync dispatch step.
-		if err := p.addToDataSync(recipient, wrappedMessage); err != nil {
-			return nil, errors.Wrap(err, "failed to send message with datasync")
-		}
-
-	} else if rawMessage.SkipEncryption {
+	if rawMessage.SkipEncryption {
 		// When SkipEncryption is set we don't pass the message to the encryption layer
 		messageIDs := [][]byte{messageID}
 		hash, newMessage, err := p.sendPrivateRawMessage(ctx, recipient, wrappedMessage, messageIDs)
@@ -380,26 +343,19 @@ func (p *MessageProcessor) HandleMessages(shhMessage *types.Message, application
 		hlogger.Debug("failed to handle an encryption message", zap.Error(err))
 	}
 
-	statusMessages, err := statusMessage.HandleDatasync(p.datasync)
+	err = statusMessage.HandleApplicationMetadata()
 	if err != nil {
-		hlogger.Debug("failed to handle datasync message", zap.Error(err))
+		hlogger.Error("failed to handle application metadata layer message", zap.Error(err))
 	}
 
-	for _, statusMessage := range statusMessages {
-		err := statusMessage.HandleApplicationMetadata()
+	if applicationLayer {
+		err = statusMessage.HandleApplication()
 		if err != nil {
-			hlogger.Error("failed to handle application metadata layer message", zap.Error(err))
-		}
-
-		if applicationLayer {
-			err = statusMessage.HandleApplication()
-			if err != nil {
-				hlogger.Error("failed to handle application layer message", zap.Error(err))
-			}
+			hlogger.Error("failed to handle application layer message", zap.Error(err))
 		}
 	}
 
-	return statusMessages, nil
+	return []*v1protocol.StatusMessage{&statusMessage}, nil
 }
 
 // fetchDecryptionKey returns the private key associated with this public key, and returns true if it's an ephemeral key
@@ -474,60 +430,6 @@ func (p *MessageProcessor) wrapMessageV1(rawMessage *RawMessage) ([]byte, error)
 		return nil, errors.Wrap(err, "failed to wrap message")
 	}
 	return wrappedMessage, nil
-}
-
-func (p *MessageProcessor) addToDataSync(publicKey *ecdsa.PublicKey, message []byte) error {
-	groupID := datasync.ToOneToOneGroupID(&p.identity.PublicKey, publicKey)
-	peerID := datasyncpeer.PublicKeyToPeerID(*publicKey)
-	exist, err := p.datasync.IsPeerInGroup(groupID, peerID)
-	if err != nil {
-		return errors.Wrap(err, "failed to check if peer is in group")
-	}
-	if !exist {
-		if err := p.datasync.AddPeer(groupID, peerID); err != nil {
-			return errors.Wrap(err, "failed to add peer")
-		}
-	}
-	_, err = p.datasync.AppendMessage(groupID, message)
-	if err != nil {
-		return errors.Wrap(err, "failed to append message to datasync")
-	}
-
-	return nil
-}
-
-// sendDataSync sends a message scheduled by the data sync layer.
-// Data Sync layer calls this method "dispatch" function.
-func (p *MessageProcessor) sendDataSync(ctx context.Context, publicKey *ecdsa.PublicKey, encodedMessage []byte, payload *datasyncproto.Payload) error {
-	// Calculate the messageIDs
-	messageIDs := make([][]byte, 0, len(payload.Messages))
-	for _, payload := range payload.Messages {
-		messageIDs = append(messageIDs, v1protocol.MessageID(&p.identity.PublicKey, payload.Body))
-	}
-
-	messageSpec, err := p.protocol.BuildDirectMessage(p.identity, publicKey, encodedMessage)
-	if err != nil {
-		return errors.Wrap(err, "failed to encrypt message")
-	}
-
-	// The shared secret needs to be handle before we send a message
-	// otherwise the topic might not be set up before we receive a message
-	if p.handleSharedSecrets != nil {
-		err := p.handleSharedSecrets([]*sharedsecret.Secret{messageSpec.SharedSecret})
-		if err != nil {
-			return err
-		}
-
-	}
-
-	hash, newMessage, err := p.sendMessageSpec(ctx, publicKey, messageSpec, messageIDs)
-	if err != nil {
-		return err
-	}
-
-	p.transport.Track(messageIDs, hash, newMessage)
-
-	return nil
 }
 
 // sendPrivateRawMessage sends a message not wrapped in an encryption layer

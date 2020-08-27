@@ -3,9 +3,9 @@ package sqlite
 import (
 	"database/sql"
 
-	"github.com/status-im/migrate/v4"
-	"github.com/status-im/migrate/v4/database/sqlcipher"
-	bindata "github.com/status-im/migrate/v4/source/go_bindata"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	bindata "github.com/golang-migrate/migrate/v4/source/go_bindata"
 )
 
 // Migrate database using provided resources.
@@ -15,8 +15,8 @@ func Migrate(db *sql.DB, resources *bindata.AssetSource) error {
 		return err
 	}
 
-	driver, err := sqlcipher.WithInstance(db, &sqlcipher.Config{
-		MigrationsTable: "status_go_" + sqlcipher.DefaultMigrationsTable,
+	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{
+		MigrationsTable: "status_go_" + sqlite3.DefaultMigrationsTable,
 	})
 	if err != nil {
 		return err
@@ -25,7 +25,7 @@ func Migrate(db *sql.DB, resources *bindata.AssetSource) error {
 	m, err := migrate.NewWithInstance(
 		"go-bindata",
 		source,
-		"sqlcipher",
+		"sqlite3",
 		driver)
 	if err != nil {
 		return err

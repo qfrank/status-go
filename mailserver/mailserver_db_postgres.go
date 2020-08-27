@@ -9,10 +9,10 @@ import (
 	"github.com/lib/pq"
 
 	// Import postgres driver
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	bindata "github.com/golang-migrate/migrate/v4/source/go_bindata"
 	_ "github.com/lib/pq"
-	"github.com/status-im/migrate/v4"
-	"github.com/status-im/migrate/v4/database/postgres"
-	bindata "github.com/status-im/migrate/v4/source/go_bindata"
 
 	"github.com/status-im/status-go/mailserver/migrations"
 

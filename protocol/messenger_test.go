@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	_ "github.com/mutecomm/go-sqlcipher" // require go-sqlcipher that overrides default implementation
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 
