@@ -333,7 +333,7 @@ func SaveAccountAndLogin(accountData, password, settingsJSON, configJSON, subacc
 	}
 	log.Debug("saving account and login")
 	log.Debug("starting a node, and saving account with configuration", "key-uid", account.KeyUID)
-	err := statusBackend.StartNodeWithAccountAndConfig(account, password, settings, &conf, subaccs)
+	err = statusBackend.StartNodeWithAccountAndConfig(account, password, settings, &conf, subaccs)
 	if err != nil {
 		log.Error("failed to start node and save account", "key-uid", account.KeyUID, "error", err)
 		return makeJSONResponse(err)
