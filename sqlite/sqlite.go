@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	_ "github.com/mutecomm/go-sqlcipher" // We require go sqlcipher that overrides default implementation
+	sqlite3 "github.com/mutecomm/go-sqlcipher" // We require go sqlcipher that overrides default implementation
 )
 
 const (
@@ -21,7 +21,10 @@ const (
 func openDB(path, key string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
-		return nil, err
+
+		sqliteErr := err.(sqlite3.Error)
+
+		return nil, fmt.Errorf("error opening database %v %v: %v", sqliteErr.Code, sqliteErr.ExtendedCode, err)
 	}
 
 	// Disable concurrent access as not supported by the driver
