@@ -2,10 +2,7 @@ package sqlite
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
-
-	sqlite3 "github.com/mutecomm/go-sqlcipher" // We require go sqlcipher that overrides default implementation
 )
 
 const (
@@ -19,43 +16,7 @@ const (
 )
 
 func openDB(path, key string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", path)
-	if err != nil {
-
-		sqliteErr := err.(sqlite3.Error)
-
-		return nil, fmt.Errorf("error opening database %v %v: %v", sqliteErr.Code, sqliteErr.ExtendedCode, err)
-	}
-
-	// Disable concurrent access as not supported by the driver
-	db.SetMaxOpenConns(1)
-
-	if _, err = db.Exec("PRAGMA foreign_keys=ON"); err != nil {
-		return nil, fmt.Errorf("error setting foregin keys: %v", err)
-	}
-	keyString := fmt.Sprintf("PRAGMA key = '%s'", key)
-	if _, err = db.Exec(keyString); err != nil {
-		return nil, errors.New("failed to set key pragma")
-	}
-
-	if _, err = db.Exec(fmt.Sprintf("PRAGMA kdf_iter = '%d'", kdfIterationsNumber)); err != nil {
-		return nil, fmt.Errorf("error setting kdf: %v", err)
-	}
-
-	// readers do not block writers and faster i/o operations
-	// https://www.sqlite.org/draft/wal.html
-	// must be set after db is encrypted
-	var mode string
-	err = db.QueryRow("PRAGMA journal_mode=WAL").Scan(&mode)
-	if err != nil {
-		sqliteErr := err.(sqlite3.Error)
-		return nil, fmt.Errorf("error querying row %v %v: %v", sqliteErr.Code, sqliteErr.ExtendedCode, err)
-	}
-	if mode != WALMode {
-		return nil, fmt.Errorf("unable to set journal_mode to WAL. actual mode %s", mode)
-	}
-
-	return db, nil
+	return OpenUnecryptedDB(path)
 }
 
 // OpenDB opens not-encrypted database.
