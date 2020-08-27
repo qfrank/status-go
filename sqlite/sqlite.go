@@ -31,7 +31,7 @@ func openDB(path, key string) (*sql.DB, error) {
 	db.SetMaxOpenConns(1)
 
 	if _, err = db.Exec("PRAGMA foreign_keys=ON"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error setting foregin keys: %v", err)
 	}
 	keyString := fmt.Sprintf("PRAGMA key = '%s'", key)
 	if _, err = db.Exec(keyString); err != nil {
@@ -39,7 +39,7 @@ func openDB(path, key string) (*sql.DB, error) {
 	}
 
 	if _, err = db.Exec(fmt.Sprintf("PRAGMA kdf_iter = '%d'", kdfIterationsNumber)); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error setting kdf: %v", err)
 	}
 
 	// readers do not block writers and faster i/o operations
@@ -48,7 +48,8 @@ func openDB(path, key string) (*sql.DB, error) {
 	var mode string
 	err = db.QueryRow("PRAGMA journal_mode=WAL").Scan(&mode)
 	if err != nil {
-		return nil, err
+		sqliteErr := err.(sqlite3.Error)
+		return nil, fmt.Errorf("error querying row %v %v: %v", sqliteErr.Code, sqliteErr.ExtendedCode, err)
 	}
 	if mode != WALMode {
 		return nil, fmt.Errorf("unable to set journal_mode to WAL. actual mode %s", mode)
