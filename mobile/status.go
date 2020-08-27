@@ -331,16 +331,14 @@ func SaveAccountAndLogin(accountData, password, settingsJSON, configJSON, subacc
 	if err != nil {
 		return makeJSONResponse(err)
 	}
-	api.RunAsync(func() error {
-		log.Debug("starting a node, and saving account with configuration", "key-uid", account.KeyUID)
-		err := statusBackend.StartNodeWithAccountAndConfig(account, password, settings, &conf, subaccs)
-		if err != nil {
-			log.Error("failed to start node and save account", "key-uid", account.KeyUID, "error", err)
-			return err
-		}
-		log.Debug("started a node, and saved account", "key-uid", account.KeyUID)
-		return nil
-	})
+	log.Debug("saving account and login")
+	log.Debug("starting a node, and saving account with configuration", "key-uid", account.KeyUID)
+	err := statusBackend.StartNodeWithAccountAndConfig(account, password, settings, &conf, subaccs)
+	if err != nil {
+		log.Error("failed to start node and save account", "key-uid", account.KeyUID, "error", err)
+		return makeJSONResponse(err)
+	}
+	log.Debug("started a node, and saved account", "key-uid", account.KeyUID)
 	return makeJSONResponse(nil)
 }
 
