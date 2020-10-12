@@ -28,6 +28,7 @@ import (
 	"github.com/status-im/status-go/protocol/identity/alias"
 	"github.com/status-im/status-go/protocol/identity/identicon"
 	"github.com/status-im/status-go/protocol/images"
+	"github.com/status-im/status-go/protocol/organisations"
 	"github.com/status-im/status-go/protocol/protobuf"
 	"github.com/status-im/status-go/protocol/pushnotificationclient"
 	"github.com/status-im/status-go/protocol/pushnotificationserver"
@@ -60,6 +61,7 @@ type Messenger struct {
 	handler                    *MessageHandler
 	pushNotificationClient     *pushnotificationclient.Client
 	pushNotificationServer     *pushnotificationserver.Server
+	organisationsManager       *organisations.Manager
 	logger                     *zap.Logger
 	verifyTransactionClient    EthClient
 	featureFlags               common.FeatureFlags
@@ -67,6 +69,7 @@ type Messenger struct {
 	shutdownTasks              []func() error
 	systemMessagesTranslations map[protobuf.MembershipUpdateEvent_EventType]string
 	allChats                   map[string]*Chat
+	allOrganisations           map[string]*organisations.Organisation
 	allContacts                map[string]*Contact
 	allInstallations           map[string]*multidevice.Installation
 	modifiedInstallations      map[string]bool
@@ -75,7 +78,8 @@ type Messenger struct {
 	database                   *sql.DB
 	quit                       chan struct{}
 
-	mutex sync.Mutex
+	mutex    sync.Mutex
+	orgMutex sync.Mutex
 }
 
 type RawResponse struct {
@@ -223,6 +227,7 @@ func NewMessenger(
 		handler:                    handler,
 		pushNotificationClient:     pushNotificationClient,
 		pushNotificationServer:     pushNotificationServer,
+		organisationsManager:       organisations.NewManager(database),
 		featureFlags:               c.featureFlags,
 		systemMessagesTranslations: c.systemMessagesTranslations,
 		allChats:                   make(map[string]*Chat),
@@ -463,6 +468,15 @@ func (m *Messenger) Init() error {
 		publicChatIDs []string
 		publicKeys    []*ecdsa.PublicKey
 	)
+
+	organisations, err := m.organisationsManager.All()
+	if err != nil {
+		return err
+	}
+
+	for _, org := range organisations {
+		m.allOrganisations[org.IDString()] = org
+	}
 
 	// Get chat IDs and public keys from the existing chats.
 	// TODO: Get only active chats by the query.
@@ -1412,6 +1426,19 @@ func (m *Messenger) Chats() []*Chat {
 	}
 
 	return chats
+}
+
+func (m *Messenger) Organisations() []*organisations.Organisation {
+	m.orgMutex.Lock()
+	defer m.orgMutex.Unlock()
+
+	var organisations []*organisations.Organisation
+
+	for _, o := range m.allOrganisations {
+		organisations = append(organisations, o)
+	}
+
+	return organisations
 }
 
 func (m *Messenger) DeleteChat(chatID string) error {

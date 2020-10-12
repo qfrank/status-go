@@ -6,12 +6,13 @@ import (
 )
 
 type MessengerResponse struct {
-	Chats          []*Chat                     `json:"chats,omitempty"`
-	Messages       []*common.Message           `json:"messages,omitempty"`
-	Contacts       []*Contact                  `json:"contacts,omitempty"`
-	Installations  []*multidevice.Installation `json:"installations,omitempty"`
-	EmojiReactions []*EmojiReaction            `json:"emojiReactions,omitempty"`
-	Invitations    []*GroupChatInvitation      `json:"invitations,omitempty"`
+	Chats          []*Chat                       `json:"chats,omitempty"`
+	Messages       []*common.Message             `json:"messages,omitempty"`
+	Contacts       []*Contact                    `json:"contacts,omitempty"`
+	Installations  []*multidevice.Installation   `json:"installations,omitempty"`
+	EmojiReactions []*EmojiReaction              `json:"emojiReactions,omitempty"`
+	Invitations    []*GroupChatInvitation        `json:"invitations,omitempty"`
+	Organisations  []*organisations.Organisation `json:"organisations,omitempty"`
 }
 
 func (m *MessengerResponse) IsEmpty() bool {
