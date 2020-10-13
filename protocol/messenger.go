@@ -213,7 +213,10 @@ func NewMessenger(
 
 	pushNotificationClient := pushnotificationclient.New(pushNotificationClientPersistence, pushNotificationClientConfig, processor, &sqlitePersistence{db: database})
 
-	organisationsManager := organisations.NewManager(database)
+	organisationsManager, err := organisations.NewManager(database, logger)
+	if err != nil {
+		return nil, err
+	}
 
 	handler := newMessageHandler(identity, logger, &sqlitePersistence{db: database}, organisationsManager)
 
@@ -1424,13 +1427,55 @@ func (m *Messenger) Organisations() ([]*organisations.Organisation, error) {
 	return m.organisationsManager.All()
 }
 
-func (m *Messenger) CreateOrganisation(description *protobuf.OrganisationDescription) (*organisations.Organisation, error) {
+func (m *Messenger) JoinOrganisation(organisationID string) (*MessengerResponse, error) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	response := &MessengerResponse{}
+
+	org, err := m.organisationsManager.JoinOrganisation(organisationID)
+	if err != nil {
+		return nil, err
+	}
+	chats := CreateOrganisationChats(org, m.getTimesource())
+	for _, chat := range chats {
+		m.allChats[chat.ID] = &chat
+		response.Chats = append(response.Chats, &chat)
+
+	}
+	return response, nil
+}
+
+func (m *Messenger) LeaveOrganisation(organisationID string) (*MessengerResponse, error) {
+	return nil, nil
+}
+
+func (m *Messenger) CreateOrganisationChat(orgID string, c *protobuf.OrganisationChat) (*MessengerResponse, error) {
+	org, changes, err := m.organisationsManager.CreateChat(orgID, c)
+	if err != nil {
+		return nil, err
+	}
+	var chats []*Chat
+	for chatID, chat := range changes.ChatsAdded {
+		c := CreateOrganisationChat(org.IDString(), chatID, chat, m.getTimesource())
+		chats = append(chats, &c)
+	}
+	return &MessengerResponse{
+		Organisations:       []*organisations.Organisation{org},
+		Chats:               chats,
+		OrganisationChanges: []*organisations.OrganisationChanges{changes},
+	}, nil
+}
+
+func (m *Messenger) CreateOrganisation(description *protobuf.OrganisationDescription) (*MessengerResponse, error) {
 	org, err := m.organisationsManager.CreateOrganisation(description)
 	if err != nil {
 		return nil, err
 	}
 
-	return org, nil
+	return &MessengerResponse{
+		Organisations: []*organisations.Organisation{org},
+	}, nil
 }
 
 func (m *Messenger) DeleteChat(chatID string) error {
