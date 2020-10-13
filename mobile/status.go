@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
 	"os"
 	"unsafe"
 
@@ -688,6 +689,21 @@ func SignHash(hexEncodedHash string) string {
 	}
 
 	return hexEncodedSignature
+}
+
+// SignTransaction signs a transaction and return the rpl encoded signed transaction
+func SignTransaction(txArgsJSON, password string, chainId int64) string {
+	var params transactions.SendTxArgs
+	err := json.Unmarshal([]byte(txArgsJSON), &params)
+	if err != nil {
+		return prepareJSONResponseWithCode(nil, err, codeFailedParseParams)
+	}
+	rlpdata, err := statusBackend.SignTransaction(params, password, big.NewInt(chainId))
+	code := codeUnknown
+	if c, ok := errToCodeMap[err]; ok {
+		code = c
+	}
+	return prepareJSONResponseWithCode(types.EncodeHex(rlpdata), err, code)
 }
 
 func GenerateAlias(pk string) string {
