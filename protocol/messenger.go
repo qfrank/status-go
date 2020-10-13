@@ -69,7 +69,6 @@ type Messenger struct {
 	shutdownTasks              []func() error
 	systemMessagesTranslations map[protobuf.MembershipUpdateEvent_EventType]string
 	allChats                   map[string]*Chat
-	allOrganisations           map[string]*organisations.Organisation
 	allContacts                map[string]*Contact
 	allInstallations           map[string]*multidevice.Installation
 	modifiedInstallations      map[string]bool
@@ -214,7 +213,9 @@ func NewMessenger(
 
 	pushNotificationClient := pushnotificationclient.New(pushNotificationClientPersistence, pushNotificationClientConfig, processor, &sqlitePersistence{db: database})
 
-	handler := newMessageHandler(identity, logger, &sqlitePersistence{db: database})
+	organisationsManager := organisations.NewManager(database)
+
+	handler := newMessageHandler(identity, logger, &sqlitePersistence{db: database}, organisationsManager)
 
 	messenger = &Messenger{
 		config:                     &c,
@@ -227,7 +228,7 @@ func NewMessenger(
 		handler:                    handler,
 		pushNotificationClient:     pushNotificationClient,
 		pushNotificationServer:     pushNotificationServer,
-		organisationsManager:       organisations.NewManager(database),
+		organisationsManager:       organisationsManager,
 		featureFlags:               c.featureFlags,
 		systemMessagesTranslations: c.systemMessagesTranslations,
 		allChats:                   make(map[string]*Chat),
@@ -468,15 +469,6 @@ func (m *Messenger) Init() error {
 		publicChatIDs []string
 		publicKeys    []*ecdsa.PublicKey
 	)
-
-	organisations, err := m.organisationsManager.All()
-	if err != nil {
-		return err
-	}
-
-	for _, org := range organisations {
-		m.allOrganisations[org.IDString()] = org
-	}
 
 	// Get chat IDs and public keys from the existing chats.
 	// TODO: Get only active chats by the query.
@@ -1428,17 +1420,17 @@ func (m *Messenger) Chats() []*Chat {
 	return chats
 }
 
-func (m *Messenger) Organisations() []*organisations.Organisation {
-	m.orgMutex.Lock()
-	defer m.orgMutex.Unlock()
+func (m *Messenger) Organisations() ([]*organisations.Organisation, error) {
+	return m.organisationsManager.All()
+}
 
-	var organisations []*organisations.Organisation
-
-	for _, o := range m.allOrganisations {
-		organisations = append(organisations, o)
+func (m *Messenger) CreateOrganisation(description *protobuf.OrganisationDescription) (*organisations.Organisation, error) {
+	org, err := m.organisationsManager.CreateOrganisation(description)
+	if err != nil {
+		return nil, err
 	}
 
-	return organisations
+	return org, nil
 }
 
 func (m *Messenger) DeleteChat(chatID string) error {
@@ -1774,9 +1766,25 @@ func (m *Messenger) sendChatMessage(ctx context.Context, message *common.Message
 		}
 		message.Payload = &protobuf.ChatMessage_Image{Image: &image}
 
-	}
+	} else if len(message.OrganisationID) != 0 {
+		organisation, err := m.organisationsManager.GetByIDString(message.OrganisationID)
+		if err != nil {
+			return nil, err
+		}
 
-	if len(message.AudioPath) != 0 {
+		if organisation == nil {
+			return nil, errors.New("organisation not found")
+		}
+
+		wrappedOrganisation, err := organisation.ToBytes()
+		if err != nil {
+			return nil, err
+		}
+		message.Payload = &protobuf.ChatMessage_Organisation{Organisation: wrappedOrganisation}
+
+		message.ContentType = protobuf.ChatMessage_ORGANISATION
+
+	} else if len(message.AudioPath) != 0 {
 		file, err := os.Open(message.AudioPath)
 		if err != nil {
 			return nil, err
@@ -2201,7 +2209,6 @@ func (m *Messenger) handleRetrievedMessages(chatWithMessages map[transport.Filte
 	logger := m.logger.With(zap.String("site", "RetrieveAll"))
 	for _, messages := range chatWithMessages {
 		for _, shhMessage := range messages {
-			// TODO: fix this to use an exported method.
 			statusMessages, err := m.processor.HandleMessages(shhMessage, true)
 			if err != nil {
 				logger.Info("failed to decode messages", zap.Error(err))
