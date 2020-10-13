@@ -30,6 +30,7 @@ const (
 	ChatTypePrivateGroupChat
 	ChatTypeProfile
 	ChatTypeTimeline
+	ChatTypeOrganisationChat
 )
 
 type Chat struct {
@@ -76,6 +77,8 @@ type Chat struct {
 
 	// Public key of user profile
 	Profile string `json:"profile,omitempty"`
+	// OrganisationID is the id of the organisation it belongs to
+	OrganisationID string `json:"organisationId,omitempty"`
 }
 
 func (c *Chat) PublicKey() (*ecdsa.PublicKey, error) {
