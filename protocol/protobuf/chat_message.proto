@@ -9,6 +9,11 @@ message StickerMessage {
   int32 pack = 2;
 }
 
+message ExtensionMessage {
+  string id = 1;
+  string params = 2;
+}
+
 message ImageMessage {
   bytes payload = 1;
   ImageType type = 2;
@@ -59,6 +64,7 @@ message ChatMessage {
     StickerMessage sticker = 9;
     ImageMessage image = 10;
     AudioMessage audio = 11;
+    ExtensionMessage extension = 12;
   }
 
   enum ContentType {
@@ -72,5 +78,6 @@ message ChatMessage {
     SYSTEM_MESSAGE_CONTENT_PRIVATE_GROUP = 6;
     IMAGE = 7;
     AUDIO = 8;
+    EXTENSION = 9;
   }
 }

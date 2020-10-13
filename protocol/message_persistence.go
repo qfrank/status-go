@@ -47,7 +47,9 @@ func (db sqlitePersistence) tableUserMessagesAllFields() string {
 		replace_message,
 		rtl,
 		line_count,
-		response_to`
+		response_to,
+		extension_id,
+        extension_params`
 }
 
 func (db sqlitePersistence) tableUserMessagesAllFieldsJoin() string {
@@ -90,7 +92,9 @@ func (db sqlitePersistence) tableUserMessagesAllFieldsJoin() string {
 		m2.audio_duration_ms,
 		m2.audio_base64,
 		c.alias,
-		c.identicon`
+		c.identicon,
+        m1.extension_id,
+        m1.extension_params`
 }
 
 func (db sqlitePersistence) tableUserMessagesAllFieldsCount() int {
@@ -113,6 +117,7 @@ func (db sqlitePersistence) tableUserMessagesScanAllFields(row scanner, message 
 	var identicon sql.NullString
 
 	sticker := &protobuf.StickerMessage{}
+	extension := &protobuf.ExtensionMessage{}
 	command := &common.CommandParameters{}
 	audio := &protobuf.AudioMessage{}
 
@@ -157,6 +162,8 @@ func (db sqlitePersistence) tableUserMessagesScanAllFields(row scanner, message 
 		&quotedAudio,
 		&alias,
 		&identicon,
+		&extension.Id,
+		&extension.Params,
 	}
 	err := row.Scan(append(args, others...)...)
 	if err != nil {
@@ -187,6 +194,9 @@ func (db sqlitePersistence) tableUserMessagesScanAllFields(row scanner, message 
 	case protobuf.ChatMessage_STICKER:
 		message.Payload = &protobuf.ChatMessage_Sticker{Sticker: sticker}
 
+	case protobuf.ChatMessage_EXTENSION:
+		message.Payload = &protobuf.ChatMessage_Extension{Extension: extension}
+
 	case protobuf.ChatMessage_AUDIO:
 		message.Payload = &protobuf.ChatMessage_Audio{Audio: audio}
 
@@ -201,6 +211,11 @@ func (db sqlitePersistence) tableUserMessagesAllValues(message *common.Message) 
 	sticker := message.GetSticker()
 	if sticker == nil {
 		sticker = &protobuf.StickerMessage{}
+	}
+
+	extension := message.GetExtension()
+	if extension == nil {
+		extension = &protobuf.ExtensionMessage{}
 	}
 
 	image := message.GetImage()
@@ -263,6 +278,8 @@ func (db sqlitePersistence) tableUserMessagesAllValues(message *common.Message) 
 		message.RTL,
 		message.LineCount,
 		message.ResponseTo,
+		extension.Id,
+		extension.Params,
 	}, nil
 }
 

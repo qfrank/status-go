@@ -129,6 +129,10 @@ func (m *Message) MarshalJSON() ([]byte, error) {
 		Hash string `json:"hash"`
 		Pack int32  `json:"pack"`
 	}
+	type ExtensionAlias struct {
+		Id     string `json:"id"`
+		Params string `json:"params"`
+	}
 	item := struct {
 		ID                string                           `json:"id"`
 		WhisperTimestamp  uint64                           `json:"whisperTimestamp"`
@@ -152,6 +156,7 @@ func (m *Message) MarshalJSON() ([]byte, error) {
 		Audio             string                           `json:"audio,omitempty"`
 		AudioDurationMs   uint64                           `json:"audioDurationMs,omitempty"`
 		Sticker           *StickerAlias                    `json:"sticker"`
+		Extension         *ExtensionAlias                  `json:"extension"`
 		CommandParameters *CommandParameters               `json:"commandParameters"`
 		Timestamp         uint64                           `json:"timestamp"`
 		ContentType       protobuf.ChatMessage_ContentType `json:"contentType"`
@@ -191,6 +196,13 @@ func (m *Message) MarshalJSON() ([]byte, error) {
 		}
 	}
 
+	if extension := m.GetExtension(); extension != nil {
+		item.Extension = &ExtensionAlias{
+			Id:     extension.Id,
+			Params: extension.Params,
+		}
+	}
+
 	if audio := m.GetAudio(); audio != nil {
 		item.AudioDurationMs = audio.DurationMs
 	}
@@ -209,6 +221,7 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 		AudioDurationMs uint64                           `json:"audioDurationMs"`
 		ParsedText      json.RawMessage                  `json:"parsedText"`
 		ContentType     protobuf.ChatMessage_ContentType `json:"contentType"`
+		Extension       *protobuf.ExtensionMessage       `json:"extension"`
 	}{
 		Alias: (*Alias)(m),
 	}
@@ -222,6 +235,9 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 		m.Payload = &protobuf.ChatMessage_Audio{
 			Audio: &protobuf.AudioMessage{DurationMs: aux.AudioDurationMs},
 		}
+	}
+	if aux.ContentType == protobuf.ChatMessage_EXTENSION {
+		m.Payload = &protobuf.ChatMessage_Extension{Extension: aux.Extension}
 	}
 	m.ResponseTo = aux.ResponseTo
 	m.EnsName = aux.EnsName
