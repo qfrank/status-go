@@ -15,11 +15,13 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
 	gethnode "github.com/ethereum/go-ethereum/node"
+	"github.com/ethereum/go-ethereum/rlp"
 
 	"github.com/status-im/status-go/account"
 	"github.com/status-im/status-go/appdatabase"
@@ -709,6 +711,47 @@ func (b *GethStatusBackend) SendTransaction(sendArgs transactions.SendTxArgs, pa
 	go b.rpcFilters.TriggerTransactionSentToUpstreamEvent(hash)
 
 	return
+}
+
+// SignTransaction signs a transaction and returns the RLP encoded version of it.
+func (b *GethStatusBackend) SignTransaction(sendArgs transactions.SendTxArgs, password string, chainId *big.Int) ([]byte, error) {
+	verifiedAccount, err := b.getVerifiedWalletAccount(sendArgs.From.String(), password)
+	if err != nil {
+		return nil, err
+	}
+
+	if !sendArgs.Valid() {
+		return nil, transactions.ErrInvalidSendTxArgs
+	}
+
+	if sendArgs.Nonce == nil {
+		return nil, errors.New("nonce must be set")
+	}
+
+	if sendArgs.Gas == nil {
+		return nil, errors.New("gas must be set")
+	}
+
+	if sendArgs.To == nil {
+		return nil, errors.New("to must be set")
+	}
+
+	tx := gethtypes.NewTransaction(
+		(uint64)(*sendArgs.Nonce),
+		common.Address(*sendArgs.To),
+		(*big.Int)(sendArgs.Value),
+		uint64(*sendArgs.Gas),
+		(*big.Int)(sendArgs.GasPrice),
+		sendArgs.GetInput(),
+	)
+
+	signer := gethtypes.NewEIP155Signer(chainId)
+	signedTx, err := gethtypes.SignTx(tx, signer, verifiedAccount.AccountKey.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return rlp.EncodeToBytes(signedTx)
 }
 
 func (b *GethStatusBackend) SendTransactionWithSignature(sendArgs transactions.SendTxArgs, sig []byte) (hash types.Hash, err error) {

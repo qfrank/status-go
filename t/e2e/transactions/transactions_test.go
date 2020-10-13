@@ -267,3 +267,31 @@ func (s *TransactionsTestSuite) TestSendEtherTxUpstream() {
 	s.NoError(err)
 	s.False(reflect.DeepEqual(hash, types.Hash{}))
 }
+
+func (s *TransactionsTestSuite) TestSignTransaction() {
+	utils.CheckTestSkipForNetworks(s.T(), params.MainNetworkID)
+	tmpdir, err := ioutil.TempDir("", "transactions-tests-")
+	s.Require().NoError(err)
+	defer os.Remove(tmpdir)
+
+	wallet := types.HexToAddress(utils.TestConfig.Account1.WalletAddress)
+	s.StartTestBackendWithAccount(multiaccounts.Account{KeyUID: utils.TestConfig.Account1.WalletAddress}, utils.TestConfig.Account1.Password,
+		[]accounts.Account{{Address: wallet, Wallet: true, Chat: true}},
+		e2e.WithDataDir(tmpdir),
+	)
+	defer s.LogoutAndStop()
+
+	utils.EnsureNodeSync(s.Backend.StatusNode().EnsureSync)
+
+	nonce := uint64(0)
+	gas := uint64(params.DefaultGas)
+	rpldata, err := s.Backend.SignTransaction(transactions.SendTxArgs{
+		Nonce: (*hexutil.Uint64)(&nonce),
+		Gas:   (*hexutil.Uint64)(&gas),
+		From:  account.FromAddress(utils.TestConfig.Account1.WalletAddress),
+		To:    account.ToAddress(utils.TestConfig.Account2.WalletAddress),
+		Value: (*hexutil.Big)(big.NewInt(1000000000000)),
+	}, utils.TestConfig.Account1.Password, big.NewInt(100))
+	s.NoError(err)
+	s.NotNil(rpldata)
+}

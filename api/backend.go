@@ -1,6 +1,8 @@
 package api
 
 import (
+	"math/big"
+
 	"github.com/status-im/status-go/eth-node/types"
 	"github.com/status-im/status-go/multiaccounts"
 	"github.com/status-im/status-go/multiaccounts/accounts"
@@ -38,6 +40,7 @@ type StatusBackend interface {
 	ResetChainData() error
 	SendTransaction(sendArgs transactions.SendTxArgs, password string) (hash types.Hash, err error)
 	SendTransactionWithSignature(sendArgs transactions.SendTxArgs, sig []byte) (hash types.Hash, err error)
+	SignTransaction(sendArgs transactions.SendTxArgs, password string, chainId *big.Int) (rpldata []byte, err error)
 	SignHash(hexEncodedHash string) (string, error)
 	SignMessage(rpcParams personal.SignParams) (types.HexBytes, error)
 	SignTypedData(typed typeddata.TypedData, address string, password string) (types.HexBytes, error)
