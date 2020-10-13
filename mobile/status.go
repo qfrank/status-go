@@ -692,13 +692,13 @@ func SignHash(hexEncodedHash string) string {
 }
 
 // SignTransaction signs a transaction and return the rpl encoded signed transaction
-func SignTransaction(txArgsJSON, password string, chainId int64) string {
+func SignTransaction(txArgsJSON, password string, chainId int) string {
 	var params transactions.SendTxArgs
 	err := json.Unmarshal([]byte(txArgsJSON), &params)
 	if err != nil {
 		return prepareJSONResponseWithCode(nil, err, codeFailedParseParams)
 	}
-	rlpdata, err := statusBackend.SignTransaction(params, password, big.NewInt(chainId))
+	rlpdata, err := statusBackend.SignTransaction(params, password, big.NewInt(int64(chainId)))
 	code := codeUnknown
 	if c, ok := errToCodeMap[err]; ok {
 		code = c
