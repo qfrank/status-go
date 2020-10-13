@@ -28,6 +28,7 @@ const (
 	ChatTypeOneToOne ChatType = iota + 1
 	ChatTypePublic
 	ChatTypePrivateGroupChat
+	ChatTypePermissionedChat
 )
 
 type Chat struct {
@@ -88,7 +89,8 @@ func (c *Chat) PublicKey() (*ecdsa.PublicKey, error) {
 }
 
 func (c *Chat) Public() bool {
-	return c.ChatType == ChatTypePublic
+	return c.ChatType == ChatTypePublic ||
+		c.ChatType == ChatTypePermissionedChat //FIXME: temporary
 }
 
 func (c *Chat) OneToOne() bool {
@@ -273,6 +275,17 @@ func CreateGroupChat(timesource TimeSource) Chat {
 		Color:     chatColors[rand.Intn(len(chatColors))],
 		Timestamp: int64(timesource.GetCurrentTime()),
 		ChatType:  ChatTypePrivateGroupChat,
+	}
+}
+
+func CreatePermissionedChat(name string, timesource TimeSource) Chat {
+	return Chat{
+		ID:        name,
+		Name:      name,
+		Active:    true,
+		Color:     chatColors[rand.Intn(len(chatColors))],
+		Timestamp: int64(timesource.GetCurrentTime()),
+		ChatType:  ChatTypePermissionedChat,
 	}
 }
 
