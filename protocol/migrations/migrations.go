@@ -653,7 +653,7 @@ func _1599720851_add_seen_index_remove_long_messagesUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1599720851_add_seen_index_remove_long_messages.up.sql", size: 150, mode: os.FileMode(0644), modTime: time.Unix(1602498186, 0)}
+	info := bindataFileInfo{name: "1599720851_add_seen_index_remove_long_messages.up.sql", size: 150, mode: os.FileMode(0644), modTime: time.Unix(1602656136, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x24, 0x1c, 0xc4, 0x78, 0x91, 0xc7, 0xeb, 0xfe, 0xc8, 0xa0, 0xd8, 0x13, 0x27, 0x97, 0xc8, 0x96, 0x56, 0x97, 0x33, 0x2c, 0x1e, 0x16, 0x8a, 0xd3, 0x49, 0x99, 0x3, 0xe9, 0xbb, 0xc4, 0x5, 0x3c}}
 	return a, nil
 }
@@ -673,7 +673,7 @@ func _1602513851_add_organisationsUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1602513851_add_organisations.up.sql", size: 224, mode: os.FileMode(0644), modTime: time.Unix(1602515669, 0)}
+	info := bindataFileInfo{name: "1602513851_add_organisations.up.sql", size: 224, mode: os.FileMode(0644), modTime: time.Unix(1602767401, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xb6, 0x5, 0xeb, 0x62, 0xa8, 0xa6, 0xa7, 0x2b, 0xdc, 0xbb, 0xeb, 0x5a, 0x42, 0x35, 0x2d, 0xbe, 0xe1, 0x9e, 0x7f, 0xd7, 0x5b, 0x66, 0x5c, 0x29, 0xbc, 0x1d, 0x17, 0xdb, 0xd6, 0xa8, 0xc4, 0xeb}}
 	return a, nil
 }

@@ -569,7 +569,7 @@ func _0014_add_use_mailserversDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0014_add_use_mailservers.down.sql", size: 0, mode: os.FileMode(0644), modTime: time.Unix(1602657585, 0)}
+	info := bindataFileInfo{name: "0014_add_use_mailservers.down.sql", size: 0, mode: os.FileMode(0644), modTime: time.Unix(1602767388, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8, 0x99, 0x6f, 0xb9, 0x24, 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55}}
 	return a, nil
 }
@@ -589,7 +589,7 @@ func _0014_add_use_mailserversUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0014_add_use_mailservers.up.sql", size: 111, mode: os.FileMode(0644), modTime: time.Unix(1602657585, 0)}
+	info := bindataFileInfo{name: "0014_add_use_mailservers.up.sql", size: 111, mode: os.FileMode(0644), modTime: time.Unix(1602767388, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xc9, 0xba, 0x65, 0xbf, 0x1b, 0xc9, 0x6d, 0x45, 0xf2, 0xf5, 0x30, 0x7c, 0xc1, 0xde, 0xb8, 0xe3, 0x3f, 0xa9, 0x2f, 0x9f, 0xea, 0x1, 0x29, 0x29, 0x65, 0xe7, 0x38, 0xab, 0xa4, 0x62, 0xf, 0xd0}}
 	return a, nil
 }
