@@ -35,6 +35,7 @@ func (db sqlitePersistence) tableUserMessagesAllFields() string {
 		audio_type,
 		audio_duration_ms,
 		audio_base64,
+		organisation_id,
 		mentions,
 		command_id,
 		command_value,
@@ -70,6 +71,7 @@ func (db sqlitePersistence) tableUserMessagesAllFieldsJoin() string {
 		m1.image_base64,
 		COALESCE(m1.audio_duration_ms,0),
 		m1.audio_base64,
+		m1.organisation_id,
 		m1.mentions,
 		m1.command_id,
 		m1.command_value,
@@ -89,6 +91,7 @@ func (db sqlitePersistence) tableUserMessagesAllFieldsJoin() string {
 		m2.image_base64,
 		m2.audio_duration_ms,
 		m2.audio_base64,
+		m2.organisation_id,
 		c.alias,
 		c.identicon`
 }
@@ -108,6 +111,7 @@ func (db sqlitePersistence) tableUserMessagesScanAllFields(row scanner, message 
 	var quotedImage sql.NullString
 	var quotedAudio sql.NullString
 	var quotedAudioDuration sql.NullInt64
+	var quotedOrganisationID sql.NullString
 	var serializedMentions []byte
 	var alias sql.NullString
 	var identicon sql.NullString
@@ -136,6 +140,7 @@ func (db sqlitePersistence) tableUserMessagesScanAllFields(row scanner, message 
 		&message.Base64Image,
 		&audio.DurationMs,
 		&message.Base64Audio,
+		&message.OrganisationID,
 		&serializedMentions,
 		&command.ID,
 		&command.Value,
@@ -155,6 +160,7 @@ func (db sqlitePersistence) tableUserMessagesScanAllFields(row scanner, message 
 		&quotedImage,
 		&quotedAudioDuration,
 		&quotedAudio,
+		&quotedOrganisationID,
 		&alias,
 		&identicon,
 	}
@@ -171,6 +177,7 @@ func (db sqlitePersistence) tableUserMessagesScanAllFields(row scanner, message 
 			Base64Image:     quotedImage.String,
 			AudioDurationMs: uint64(quotedAudioDuration.Int64),
 			Base64Audio:     quotedAudio.String,
+			OrganisationID:  quotedOrganisationID.String,
 		}
 	}
 	message.Alias = alias.String
@@ -250,6 +257,7 @@ func (db sqlitePersistence) tableUserMessagesAllValues(message *common.Message) 
 		audio.Type,
 		audio.DurationMs,
 		message.Base64Audio,
+		message.OrganisationID,
 		serializedMentions,
 		command.ID,
 		command.Value,

@@ -28,6 +28,7 @@
 // 1599641390_add_emoji_reactions_index.up.sql (126B)
 // 1599720851_add_seen_index_remove_long_messages.down.sql (96B)
 // 1599720851_add_seen_index_remove_long_messages.up.sql (150B)
+// 1602513851_add_organisations.up.sql (224B)
 // doc.go (850B)
 
 package migrations
@@ -652,8 +653,28 @@ func _1599720851_add_seen_index_remove_long_messagesUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1599720851_add_seen_index_remove_long_messages.up.sql", size: 150, mode: os.FileMode(0644), modTime: time.Unix(1601544684, 0)}
+	info := bindataFileInfo{name: "1599720851_add_seen_index_remove_long_messages.up.sql", size: 150, mode: os.FileMode(0644), modTime: time.Unix(1602498186, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x24, 0x1c, 0xc4, 0x78, 0x91, 0xc7, 0xeb, 0xfe, 0xc8, 0xa0, 0xd8, 0x13, 0x27, 0x97, 0xc8, 0x96, 0x56, 0x97, 0x33, 0x2c, 0x1e, 0x16, 0x8a, 0xd3, 0x49, 0x99, 0x3, 0xe9, 0xbb, 0xc4, 0x5, 0x3c}}
+	return a, nil
+}
+
+var __1602513851_add_organisationsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\x48\xce\x48\x2c\x29\x56\x70\x74\x71\x51\x70\xf6\xf7\x09\xf5\xf5\x53\xc8\x2f\x4a\x4f\xcc\xcb\x2c\x4e\x2c\xc9\xcc\xcf\x8b\xcf\x4c\x51\x08\x71\x8d\x08\x51\x70\x71\x75\x73\x0c\xf5\x09\x51\x50\x52\xb2\xe6\xe5\x0a\x0d\x70\x71\x0c\x81\xe9\x0c\x76\x0d\xc1\xd0\x62\x0b\x51\xc7\xcb\x85\x6c\x51\x69\x71\x6a\x51\x7c\x6e\x6a\x71\x71\x62\x7a\x2a\x79\x16\xa2\x9a\x80\xc7\x62\x40\x00\x00\x00\xff\xff\xb7\xb7\x44\xc0\xe0\x00\x00\x00")
+
+func _1602513851_add_organisationsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1602513851_add_organisationsUpSql,
+		"1602513851_add_organisations.up.sql",
+	)
+}
+
+func _1602513851_add_organisationsUpSql() (*asset, error) {
+	bytes, err := _1602513851_add_organisationsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1602513851_add_organisations.up.sql", size: 224, mode: os.FileMode(0644), modTime: time.Unix(1602515669, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xb6, 0x5, 0xeb, 0x62, 0xa8, 0xa6, 0xa7, 0x2b, 0xdc, 0xbb, 0xeb, 0x5a, 0x42, 0x35, 0x2d, 0xbe, 0xe1, 0x9e, 0x7f, 0xd7, 0x5b, 0x66, 0x5c, 0x29, 0xbc, 0x1d, 0x17, 0xdb, 0xd6, 0xa8, 0xc4, 0xeb}}
 	return a, nil
 }
 
@@ -824,6 +845,8 @@ var _bindata = map[string]func() (*asset, error){
 
 	"1599720851_add_seen_index_remove_long_messages.up.sql": _1599720851_add_seen_index_remove_long_messagesUpSql,
 
+	"1602513851_add_organisations.up.sql": _1602513851_add_organisationsUpSql,
+
 	"doc.go": docGo,
 }
 
@@ -896,7 +919,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"1599641390_add_emoji_reactions_index.up.sql":              &bintree{_1599641390_add_emoji_reactions_indexUpSql, map[string]*bintree{}},
 	"1599720851_add_seen_index_remove_long_messages.down.sql":  &bintree{_1599720851_add_seen_index_remove_long_messagesDownSql, map[string]*bintree{}},
 	"1599720851_add_seen_index_remove_long_messages.up.sql":    &bintree{_1599720851_add_seen_index_remove_long_messagesUpSql, map[string]*bintree{}},
-	"doc.go": &bintree{docGo, map[string]*bintree{}},
+	"1602513851_add_organisations.up.sql":                      &bintree{_1602513851_add_organisationsUpSql, map[string]*bintree{}},
+	"doc.go":                                                   &bintree{docGo, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory.

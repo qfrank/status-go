@@ -122,8 +122,8 @@ func (db sqlitePersistence) saveChat(tx *sql.Tx, chat Chat) error {
 	}
 
 	// Insert record
-	stmt, err := tx.Prepare(`INSERT INTO chats(id, name, color, active, type, timestamp,  deleted_at_clock_value, unviewed_message_count, last_clock_value, last_message, members, membership_updates, muted, invitation_admin)
-	    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?)`)
+	stmt, err := tx.Prepare(`INSERT INTO chats(id, name, color, active, type, timestamp,  deleted_at_clock_value, unviewed_message_count, last_clock_value, last_message, members, membership_updates, muted, invitation_admin, organisation_id)
+	    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?,?)`)
 	if err != nil {
 		return err
 	}
@@ -144,6 +144,7 @@ func (db sqlitePersistence) saveChat(tx *sql.Tx, chat Chat) error {
 		encodedMembershipUpdates.Bytes(),
 		chat.Muted,
 		chat.InvitationAdmin,
+		chat.OrganisationID,
 	)
 	if err != nil {
 		return err
@@ -203,6 +204,7 @@ func (db sqlitePersistence) chats(tx *sql.Tx) (chats []*Chat, err error) {
 			chats.membership_updates,
 			chats.muted,
 			chats.invitation_admin,
+			chats.organisation_id,
 			contacts.identicon,
 			contacts.alias
 		FROM chats LEFT JOIN contacts ON chats.id = contacts.id
@@ -238,6 +240,7 @@ func (db sqlitePersistence) chats(tx *sql.Tx) (chats []*Chat, err error) {
 			&encodedMembershipUpdates,
 			&chat.Muted,
 			&invitationAdmin,
+			&chat.OrganisationID,
 			&identicon,
 			&alias,
 		)
@@ -305,7 +308,8 @@ func (db sqlitePersistence) Chat(chatID string) (*Chat, error) {
 			members,
 			membership_updates,
 			muted,
-			invitation_admin
+			invitation_admin,
+			organisation_id
 		FROM chats
 		WHERE id = ?
 	`, chatID).Scan(&chat.ID,
@@ -322,6 +326,7 @@ func (db sqlitePersistence) Chat(chatID string) (*Chat, error) {
 		&encodedMembershipUpdates,
 		&chat.Muted,
 		&invitationAdmin,
+		&chat.OrganisationID,
 	)
 	switch err {
 	case sql.ErrNoRows:

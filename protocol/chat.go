@@ -28,6 +28,7 @@ const (
 	ChatTypeOneToOne ChatType = iota + 1
 	ChatTypePublic
 	ChatTypePrivateGroupChat
+	ChatTypeOrganisationChat
 )
 
 type Chat struct {
@@ -71,6 +72,9 @@ type Chat struct {
 
 	// Public key of administrator who created invitation link
 	InvitationAdmin string `json:"invitationAdmin,omitempty"`
+
+	// OrganisationID is the id of the organisation it belongs to
+	OrganisationID string `json:"organisationId,omitempty"`
 }
 
 func (c *Chat) PublicKey() (*ecdsa.PublicKey, error) {
