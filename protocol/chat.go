@@ -2,7 +2,6 @@ package protocol
 
 import (
 	"crypto/ecdsa"
-	"encoding/hex"
 	"errors"
 	"math/rand"
 
@@ -87,13 +86,7 @@ func (c *Chat) PublicKey() (*ecdsa.PublicKey, error) {
 	if c.ChatType != ChatTypeOneToOne {
 		return nil, nil
 	}
-	pkey, err := hex.DecodeString(c.ID[2:])
-	if err != nil {
-		return nil, err
-	}
-	// Safety check, make sure is well formed
-	return crypto.UnmarshalPubkey(pkey)
-
+	return common.HexToPubkey(c.ID)
 }
 
 func (c *Chat) Public() bool {
@@ -129,7 +122,7 @@ func (c *Chat) MembersAsPublicKeys() ([]*ecdsa.PublicKey, error) {
 	for idx, item := range c.Members {
 		publicKeys[idx] = item.ID
 	}
-	return stringSliceToPublicKeys(publicKeys, true)
+	return stringSliceToPublicKeys(publicKeys)
 }
 
 func (c *Chat) JoinedMembersAsPublicKeys() ([]*ecdsa.PublicKey, error) {
@@ -139,7 +132,7 @@ func (c *Chat) JoinedMembersAsPublicKeys() ([]*ecdsa.PublicKey, error) {
 			publicKeys = append(publicKeys, member.ID)
 		}
 	}
-	return stringSliceToPublicKeys(publicKeys, true)
+	return stringSliceToPublicKeys(publicKeys)
 }
 
 func (c *Chat) HasMember(memberID string) bool {
@@ -245,11 +238,7 @@ type ChatMember struct {
 }
 
 func (c ChatMember) PublicKey() (*ecdsa.PublicKey, error) {
-	b, err := types.DecodeHex(c.ID)
-	if err != nil {
-		return nil, err
-	}
-	return crypto.UnmarshalPubkey(b)
+	return common.HexToPubkey(c.ID)
 }
 
 func oneToOneChatID(publicKey *ecdsa.PublicKey) string {
@@ -325,22 +314,11 @@ func CreateGroupChat(timesource common.TimeSource) Chat {
 	}
 }
 
-func stringSliceToPublicKeys(slice []string, prefixed bool) ([]*ecdsa.PublicKey, error) {
+func stringSliceToPublicKeys(slice []string) ([]*ecdsa.PublicKey, error) {
 	result := make([]*ecdsa.PublicKey, len(slice))
 	for idx, item := range slice {
-		var (
-			b   []byte
-			err error
-		)
-		if prefixed {
-			b, err = types.DecodeHex(item)
-		} else {
-			b, err = hex.DecodeString(item)
-		}
-		if err != nil {
-			return nil, err
-		}
-		result[idx], err = crypto.UnmarshalPubkey(b)
+		var err error
+		result[idx], err = common.HexToPubkey(item)
 		if err != nil {
 			return nil, err
 		}
