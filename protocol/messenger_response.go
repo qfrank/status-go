@@ -6,21 +6,21 @@ import (
 )
 
 type MessengerResponse struct {
-	Chats               []*Chat                              `json:"chats,omitempty"`
-	Messages            []*common.Message                    `json:"messages,omitempty"`
-	Contacts            []*Contact                           `json:"contacts,omitempty"`
-	Installations       []*multidevice.Installation          `json:"installations,omitempty"`
-	EmojiReactions      []*EmojiReaction                     `json:"emojiReactions,omitempty"`
-	Invitations         []*GroupChatInvitation               `json:"invitations,omitempty"`
-	Organisations       []*organisations.Organisation        `json:"organisations,omitempty"`
-	OrganisationChanges []*organisations.OrganisationChanges `json:"organisationsChanges,omitempty"`
-	Filters             []*transport.Filter                  `json:"filters,omitempty"`
-	RemovedFilters      []string                             `json:"removedFilters,omitempty"`
+	Chats            []*Chat                         `json:"chats,omitempty"`
+	Messages         []*common.Message               `json:"messages,omitempty"`
+	Contacts         []*Contact                      `json:"contacts,omitempty"`
+	Installations    []*multidevice.Installation     `json:"installations,omitempty"`
+	EmojiReactions   []*EmojiReaction                `json:"emojiReactions,omitempty"`
+	Invitations      []*GroupChatInvitation          `json:"invitations,omitempty"`
+	Communities      []*communities.Community        `json:"communities,omitempty"`
+	CommunityChanges []*communities.CommunityChanges `json:"communitiesChanges,omitempty"`
+	Filters          []*transport.Filter             `json:"filters,omitempty"`
+	RemovedFilters   []string                        `json:"removedFilters,omitempty"`
 }
 
 func (m *MessengerResponse) IsEmpty() bool {
 
-	return len(m.Chats)+len(m.Messages)+len(m.Contacts)+len(m.Installations)+len(m.Invitations)+len(m.EmojiReactions)+len(m.Organisations)+len(m.OrganisationChanges)+len(m.Filters)+len(m.RemovedFilters)+len(m.RemovedChats) == 0
+	return len(m.Chats)+len(m.Messages)+len(m.Contacts)+len(m.Installations)+len(m.Invitations)+len(m.EmojiReactions)+len(m.Communities)+len(m.CommunityChanges)+len(m.Filters)+len(m.RemovedFilters)+len(m.RemovedChats) == 0
 }
 
 // Merge takes another response and appends the new Chats & new Messages and replaces
