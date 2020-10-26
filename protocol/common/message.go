@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/status-im/status-go/images"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -260,7 +261,7 @@ func (m *Message) parseImage() error {
 
 	e64.Encode(encBuf, payload)
 
-	mime, err := getImageMessageMIME(image)
+	mime, err := images.GetMimeType(image.Payload)
 
 	if err != nil {
 		return err
@@ -341,20 +342,6 @@ func (m *Message) PrepareContent() error {
 		return err
 	}
 	return m.parseAudio()
-}
-
-func getImageMessageMIME(i *protobuf.ImageMessage) (string, error) {
-	switch i.Type {
-	case protobuf.ImageType_PNG:
-		return "png", nil
-	case protobuf.ImageType_JPEG:
-		return "jpeg", nil
-	case protobuf.ImageType_WEBP:
-		return "webp", nil
-	case protobuf.ImageType_GIF:
-		return "gif", nil
-	}
-	return "", errors.New("image format not supported")
 }
 
 func getAudioMessageMIME(i *protobuf.AudioMessage) (string, error) {
