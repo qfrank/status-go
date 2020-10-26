@@ -1668,6 +1668,27 @@ func (m *Messenger) CreateCommunity(description *protobuf.CommunityDescription) 
 	}, nil
 }
 
+func (m *Messenger) ExportCommunity(id string) (*ecdsa.PrivateKey, error) {
+	return m.communitiesManager.ExportCommunity(id)
+}
+
+func (m *Messenger) ImportCommunity(key *ecdsa.PrivateKey) (*MessengerResponse, error) {
+	org, err := m.communitiesManager.ImportCommunity(key)
+	if err != nil {
+		return nil, err
+	}
+
+	// Load filters
+	filters, err := m.transport.InitPublicFilters([]string{org.IDString()})
+	if err != nil {
+		return nil, err
+	}
+
+	return &MessengerResponse{
+		Filters: filters,
+	}, nil
+}
+
 func (m *Messenger) InviteUserToCommunity(orgID, pkString string) (*MessengerResponse, error) {
 	publicKey, err := common.HexToPubkey(pkString)
 	if err != nil {
@@ -2416,8 +2437,12 @@ type ReceivedMessageState struct {
 	ModifiedContacts map[string]bool
 	// All installations in memory
 	AllInstallations map[string]*multidevice.Installation
-	// List of installations modified
+	// List of communities modified
 	ModifiedInstallations map[string]bool
+	// List of communities
+	AllCommunities map[string]*communities.Community
+	// List of filters
+	AllFilters map[string]*transport.Filter
 	// Map of existing messages
 	ExistingMessagesMap map[string]bool
 	// EmojiReactions is a list of emoji reactions for the current batch
@@ -2443,6 +2468,8 @@ func (m *Messenger) handleRetrievedMessages(chatWithMessages map[transport.Filte
 		ModifiedInstallations: m.modifiedInstallations,
 		ExistingMessagesMap:   make(map[string]bool),
 		EmojiReactions:        make(map[string]*EmojiReaction),
+		AllCommunities:        make(map[string]*communities.Community),
+		AllFilters:            make(map[string]*transport.Filter),
 		GroupChatInvitations:  make(map[string]*GroupChatInvitation),
 		Response:              &MessengerResponse{},
 		Timesource:            m.getTimesource(),
@@ -2774,6 +2801,14 @@ func (m *Messenger) handleRetrievedMessages(chatWithMessages map[transport.Filte
 				messageState.Response.Contacts = append(messageState.Response.Contacts, contact)
 			}
 		}
+	}
+
+	for _, community := range messageState.AllCommunities {
+		messageState.Response.Communities = append(messageState.Response.Communities, community)
+	}
+
+	for _, filter := range messageState.AllFilters {
+		messageState.Response.Filters = append(messageState.Response.Filters, filter)
 	}
 
 	for id := range messageState.ModifiedChats {

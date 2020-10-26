@@ -336,7 +336,8 @@ func (m *MessageHandler) HandleCommunityDescription(state *ReceivedMessageState,
 	if err != nil {
 		return err
 	}
-	state.Response.Communities = append(state.Response.Communities, community)
+
+	state.AllCommunities[community.IDString()] = community
 
 	// If we haven't joined the org, nothing to do
 	if !community.Joined() {
@@ -369,7 +370,9 @@ func (m *MessageHandler) HandleCommunityDescription(state *ReceivedMessageState,
 		return err
 	}
 
-	state.Response.Filters = filters
+	for _, filter := range filters {
+		state.AllFilters[filter.ChatID] = filter
+	}
 
 	return nil
 }
@@ -388,11 +391,11 @@ func (m *MessageHandler) HandleCommunityInvitation(state *ReceivedMessageState, 
 		return errors.New("invitation not for us")
 	}
 
-	org, err := m.communitiesManager.HandleCommunityInvitation(signer, &invitation, rawPayload)
+	community, err := m.communitiesManager.HandleCommunityInvitation(signer, &invitation, rawPayload)
 	if err != nil {
 		return err
 	}
-	state.Response.Communities = append(state.Response.Communities, org)
+	state.AllCommunities[community.IDString()] = community
 
 	return nil
 }
@@ -481,7 +484,8 @@ func (m *MessageHandler) HandleChatMessage(state *ReceivedMessageState) error {
 			return err
 		}
 		receivedMessage.CommunityID = community.IDString()
-		state.Response.Communities = append(state.Response.Communities, community)
+
+		state.AllCommunities[community.IDString()] = community
 	}
 	// Add to response
 	state.Response.Messages = append(state.Response.Messages, receivedMessage)
