@@ -74,7 +74,7 @@ type EmojiReaction struct {
 	Type EmojiReaction_Type `protobuf:"varint,5,opt,name=type,proto3,enum=protobuf.EmojiReaction_Type" json:"type,omitempty"`
 	// whether this is a rectraction of a previously sent emoji
 	Retracted bool `protobuf:"varint,6,opt,name=retracted,proto3" json:"retracted,omitempty"`
-	// Grant for organisation chat messages
+	// Grant for community chat messages
 	Grant                []byte   `protobuf:"bytes,7,opt,name=grant,proto3" json:"grant,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`

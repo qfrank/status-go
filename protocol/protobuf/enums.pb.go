@@ -29,7 +29,7 @@ const (
 	MessageType_PRIVATE_GROUP        MessageType = 3
 	// Only local
 	MessageType_SYSTEM_MESSAGE_PRIVATE_GROUP MessageType = 4
-	MessageType_ORGANISATION_CHAT            MessageType = 5
+	MessageType_COMMUNITY_CHAT            MessageType = 5
 )
 
 var MessageType_name = map[int32]string{
@@ -38,7 +38,7 @@ var MessageType_name = map[int32]string{
 	2: "PUBLIC_GROUP",
 	3: "PRIVATE_GROUP",
 	4: "SYSTEM_MESSAGE_PRIVATE_GROUP",
-	5: "ORGANISATION_CHAT",
+	5: "COMMUNITY_CHAT",
 }
 
 var MessageType_value = map[string]int32{
@@ -47,7 +47,7 @@ var MessageType_value = map[string]int32{
 	"PUBLIC_GROUP":                 2,
 	"PRIVATE_GROUP":                3,
 	"SYSTEM_MESSAGE_PRIVATE_GROUP": 4,
-	"ORGANISATION_CHAT":            5,
+	"COMMUNITY_CHAT":            5,
 }
 
 func (x MessageType) String() string {

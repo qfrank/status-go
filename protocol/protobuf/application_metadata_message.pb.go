@@ -47,8 +47,8 @@ const (
 	ApplicationMetadataMessage_PUSH_NOTIFICATION_RESPONSE              ApplicationMetadataMessage_Type = 21
 	ApplicationMetadataMessage_EMOJI_REACTION                          ApplicationMetadataMessage_Type = 22
 	ApplicationMetadataMessage_GROUP_CHAT_INVITATION                   ApplicationMetadataMessage_Type = 23
-	ApplicationMetadataMessage_ORGANISATION_DESCRIPTION                ApplicationMetadataMessage_Type = 24
-	ApplicationMetadataMessage_ORGANISATION_INVITATION                 ApplicationMetadataMessage_Type = 25
+	ApplicationMetadataMessage_COMMUNITY_DESCRIPTION                ApplicationMetadataMessage_Type = 24
+	ApplicationMetadataMessage_COMMUNITY_INVITATION                 ApplicationMetadataMessage_Type = 25
 )
 
 var ApplicationMetadataMessage_Type_name = map[int32]string{
@@ -76,8 +76,8 @@ var ApplicationMetadataMessage_Type_name = map[int32]string{
 	21: "PUSH_NOTIFICATION_RESPONSE",
 	22: "EMOJI_REACTION",
 	23: "GROUP_CHAT_INVITATION",
-	24: "ORGANISATION_DESCRIPTION",
-	25: "ORGANISATION_INVITATION",
+	24: "COMMUNITY_DESCRIPTION",
+	25: "COMMUNITY_INVITATION",
 }
 
 var ApplicationMetadataMessage_Type_value = map[string]int32{
@@ -105,8 +105,8 @@ var ApplicationMetadataMessage_Type_value = map[string]int32{
 	"PUSH_NOTIFICATION_RESPONSE":              21,
 	"EMOJI_REACTION":                          22,
 	"GROUP_CHAT_INVITATION":                   23,
-	"ORGANISATION_DESCRIPTION":                24,
-	"ORGANISATION_INVITATION":                 25,
+	"COMMUNITY_DESCRIPTION":                24,
+	"COMMUNITY_INVITATION":                 25,
 }
 
 func (x ApplicationMetadataMessage_Type) String() string {
