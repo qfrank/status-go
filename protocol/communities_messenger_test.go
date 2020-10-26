@@ -91,7 +91,7 @@ func (s *MessengerCommunitiesSuite) newMessenger(shh types.Waku) *Messenger {
 	return s.newMessengerWithKey(s.shh, privateKey)
 }
 
-func (s *MessengerCommunitiesSuite) TestRetrieveCommunity() {
+func (s *MessengerCommunitiesSuite) testRetrieveCommunity() {
 	alice := s.newMessenger(s.shh)
 
 	description := &protobuf.CommunityDescription{
@@ -144,7 +144,7 @@ func (s *MessengerCommunitiesSuite) TestRetrieveCommunity() {
 	s.Require().Equal(community.IDString(), response.Messages[0].CommunityID)
 }
 
-func (s *MessengerCommunitiesSuite) TestJoinCommunity() {
+func (s *MessengerCommunitiesSuite) testJoinCommunity() {
 	// start alice and enable sending push notifications
 	s.Require().NoError(s.alice.Start())
 
@@ -300,7 +300,7 @@ func (s *MessengerCommunitiesSuite) TestJoinCommunity() {
 	s.Require().Len(response.RemovedChats, 2)
 }
 
-func (s *MessengerCommunitiesSuite) TestInviteUserToCommunity() {
+func (s *MessengerCommunitiesSuite) testInviteUserToCommunity() {
 	description := &protobuf.CommunityDescription{
 		Permissions: &protobuf.CommunityPermissions{
 			Access: protobuf.CommunityPermissions_NO_MEMBERSHIP,
@@ -349,7 +349,7 @@ func (s *MessengerCommunitiesSuite) TestInviteUserToCommunity() {
 	s.Require().True(community.HasMember(&s.alice.identity.PublicKey))
 }
 
-func (s *MessengerCommunitiesSuite) TestPostToCommunityChat() {
+func (s *MessengerCommunitiesSuite) testPostToCommunityChat() {
 	description := &protobuf.CommunityDescription{
 		Permissions: &protobuf.CommunityPermissions{
 			Access: protobuf.CommunityPermissions_INVITATION_ONLY,
@@ -456,4 +456,60 @@ func (s *MessengerCommunitiesSuite) TestPostToCommunityChat() {
 	s.Require().Len(response.Messages, 1)
 	s.Require().Len(response.Chats, 1)
 	s.Require().Equal(chatID, response.Chats[0].ID)
+}
+
+func (s *MessengerCommunitiesSuite) TestImportCommunity() {
+	description := &protobuf.CommunityDescription{
+		Permissions: &protobuf.CommunityPermissions{
+			Access: protobuf.CommunityPermissions_NO_MEMBERSHIP,
+		},
+		Identity: &protobuf.ChatIdentity{
+			DisplayName: "status",
+			Description: "status community description",
+		},
+	}
+
+	// Create an community chat
+	response, err := s.bob.CreateCommunity(description)
+	s.Require().NoError(err)
+	s.Require().NotNil(response)
+	s.Require().Len(response.Communities, 1)
+
+	s.bob.logger.Info("communitise", zap.Any("COMM", response.Communities))
+
+	community := response.Communities[0]
+
+	privateKey, err := s.bob.ExportCommunity(community.IDString())
+	s.Require().NoError(err)
+
+	response, err = s.alice.ImportCommunity(privateKey)
+	s.Require().NoError(err)
+	s.Require().Len(response.Filters, 1)
+
+	// Invite user on bob side
+	newUser, err := crypto.GenerateKey()
+	s.Require().NoError(err)
+
+	_, err = s.bob.InviteUserToCommunity(community.IDString(), common.PubkeyToHex(&newUser.PublicKey))
+	s.Require().NoError(err)
+
+	// Pull message and make sure org is received
+	err = tt.RetryWithBackOff(func() error {
+		response, err = s.alice.RetrieveAll()
+		if err != nil {
+			return err
+		}
+		if len(response.Communities) == 0 {
+			return errors.New("community not received")
+		}
+		return nil
+	})
+
+	s.bob.logger.Info("communitise", zap.Any("COMM", response.Communities))
+	s.Require().NoError(err)
+	s.Require().Len(response.Communities, 1)
+	community = response.Communities[0]
+	s.Require().True(community.Joined())
+	s.Require().True(community.IsAdmin())
+	s.Require().True(community.HasMember(&newUser.PublicKey))
 }
