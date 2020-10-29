@@ -2,10 +2,14 @@ package typeddata
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
+
+	signercore "github.com/ethereum/go-ethereum/signer/core"
 )
 
 var (
@@ -32,6 +36,25 @@ func Sign(typed TypedData, prv *ecdsa.PrivateKey, chain *big.Int) ([]byte, error
 		return nil, err
 	}
 	sig, err := crypto.Sign(hash[:], prv)
+	if err != nil {
+		return nil, err
+	}
+	sig[64] += 27
+	return sig, nil
+}
+
+func SignTypedData(typedData signercore.TypedData, prv *ecdsa.PrivateKey, chain *big.Int) (hexutil.Bytes, error) {
+	domainSeparator, err := typedData.HashStruct("EIP712Domain", typedData.Domain.Map())
+	if err != nil {
+		return nil, err
+	}
+	typedDataHash, err := typedData.HashStruct(typedData.PrimaryType, typedData.Message)
+	if err != nil {
+		return nil, err
+	}
+	rawData := []byte(fmt.Sprintf("\x19\x01%s%s", string(domainSeparator), string(typedDataHash)))
+	sighash := crypto.Keccak256(rawData)
+	sig, err := crypto.Sign(sighash[:], prv)
 	if err != nil {
 		return nil, err
 	}
