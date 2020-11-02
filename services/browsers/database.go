@@ -2,6 +2,8 @@ package browsers
 
 import (
 	"database/sql"
+
+	"github.com/mat/besticon/besticon"
 )
 
 // Database sql wrapper for operations with browser objects.
@@ -152,13 +154,23 @@ func (db *Database) GetBookmarks() ([]*Bookmark, error) {
 	return rst, nil
 }
 
-func (db *Database) StoreBookmark(bookmark Bookmark) error {
+func (db *Database) StoreBookmark(bookmark Bookmark) (Bookmark, error) {
 	insert, err := db.db.Prepare("INSERT OR REPLACE INTO bookmarks (url, name, image_url) VALUES (?, ?, ?)")
+	// Set format to 48 or something
+	finder := besticon.IconFinder{}
+	icons, iconError := finder.FetchIcons(bookmark.Url)
+
+	if iconError == nil {
+		if len(icons) > 0 {
+			bookmark.ImageUrl = icons[0].URL
+		}
+	}
+
 	if err != nil {
-		return err
+		return bookmark, err
 	}
 	_, err = insert.Exec(bookmark.Url, bookmark.Name, bookmark.ImageUrl)
-	return err
+	return bookmark, err
 }
 
 func (db *Database) UpdateBookmark(originalUrl string, bookmark Bookmark) error {
