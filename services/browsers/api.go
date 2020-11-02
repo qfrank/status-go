@@ -41,6 +41,13 @@ func (api *API) StoreBookmark(ctx context.Context, bookmark Bookmark) error {
 	return err
 }
 
+func (api *API) UpdateBookmark(ctx context.Context, originalUrl string, bookmark Bookmark) error {
+	log.Debug("call to update a bookmark")
+	err := api.db.UpdateBookmark(originalUrl, bookmark)
+	log.Debug("result from database for updating a bookmark", "err", err)
+	return err
+}
+
 func (api *API) DeleteBookmark(ctx context.Context, url string) error {
 	log.Debug("call to remove a bookmark")
 	err := api.db.DeleteBookmark(url)

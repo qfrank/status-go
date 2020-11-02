@@ -153,11 +153,20 @@ func (db *Database) GetBookmarks() ([]*Bookmark, error) {
 }
 
 func (db *Database) StoreBookmark(bookmark Bookmark) error {
-	insert, err := db.db.Prepare("INSERT INTO bookmarks (url, name, image_url) VALUES (?, ?, ?)")
+	insert, err := db.db.Prepare("INSERT OR REPLACE INTO bookmarks (url, name, image_url) VALUES (?, ?, ?)")
 	if err != nil {
 		return err
 	}
 	_, err = insert.Exec(bookmark.Url, bookmark.Name, bookmark.ImageUrl)
+	return err
+}
+
+func (db *Database) UpdateBookmark(originalUrl string, bookmark Bookmark) error {
+	insert, err := db.db.Prepare("UPDATE bookmarks SET url = ?, name = ?, image_url = ? WHERE url = ?")
+	if err != nil {
+		return err
+	}
+	_, err = insert.Exec(bookmark.Url, bookmark.Name, bookmark.ImageUrl, originalUrl)
 	return err
 }
 
