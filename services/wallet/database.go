@@ -250,6 +250,23 @@ func (db *Database) GetTransfersByAddress(address common.Address, toBlock *big.I
 	return query.Scan(rows)
 }
 
+// GetTransfersByAddressAndBlock loads transfers for a given address and block.
+func (db *Database) GetTransfersByAddressAndBlock(address common.Address, block *big.Int, limit int64) (rst []Transfer, err error) {
+	query := newTransfersQuery().
+		FilterNetwork(db.network).
+		FilterAddress(address).
+		FilterBlockNumber(block).
+		FilterLoaded(1).
+		Limit(limit)
+
+	rows, err := db.db.Query(query.String(), query.Args()...)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	return query.Scan(rows)
+}
+
 // GetBlocksByAddress loads blocks for a given address.
 func (db *Database) GetBlocksByAddress(address common.Address, limit int) (rst []*big.Int, err error) {
 	query := `SELECT blk_number FROM blocks
@@ -656,6 +673,41 @@ func (db *Database) StorePendingTransaction(trx PendingTransaction) error {
 
 func (db *Database) DeletePendingTransaction(transactionHash common.Hash) error {
 	_, err := db.db.Exec(`DELETE FROM pending_transactions WHERE transaction_hash = ?`, transactionHash)
+	return err
+}
+
+type Favourite struct {
+	Address common.Address `json:"address"`
+	Name    string         `json:"name"`
+}
+
+func (db *Database) GetFavourites() ([]*Favourite, error) {
+	rows, err := db.db.Query(`SELECT address, name FROM favourites`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var rst []*Favourite
+	for rows.Next() {
+		favourite := &Favourite{}
+		err := rows.Scan(&favourite.Address, &favourite.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		rst = append(rst, favourite)
+	}
+
+	return rst, nil
+}
+
+func (db *Database) AddFavourite(favourite Favourite) error {
+	insert, err := db.db.Prepare("INSERT OR REPLACE INTO favourites (address, name) VALUES (?, ?)")
+	if err != nil {
+		return err
+	}
+	_, err = insert.Exec(favourite.Address, favourite.Name)
 	return err
 }
 

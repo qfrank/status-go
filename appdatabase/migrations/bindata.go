@@ -21,8 +21,16 @@
 // 0011_allow_webview_permission_requests.up.sql (88B)
 // 0012_pending_transactions.down.sql (33B)
 // 0012_pending_transactions.up.sql (321B)
+// 0013_favourites.down.sql (23B)
+// 0013_favourites.up.sql (132B)
 // 0013_identity_images.down.sql (29B)
 // 0013_identity_images.up.sql (224B)
+// 0014_add_use_mailservers.down.sql (0)
+// 0014_add_use_mailservers.up.sql (111B)
+// 0015_link_previews.down.sql (0)
+// 0015_link_previews.up.sql (203B)
+// 0016_local_notifications_preferences.down.sql (43B)
+// 0016_local_notifications_preferences.up.sql (204B)
 // doc.go (74B)
 
 package migrations
@@ -512,6 +520,46 @@ func _0012_pending_transactionsUpSql() (*asset, error) {
 	return a, nil
 }
 
+var __0013_favouritesDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\x48\x4b\x2c\xcb\x2f\x2d\xca\x2c\x49\x2d\xb6\xe6\x02\x04\x00\x00\xff\xff\x76\xaf\x3d\x70\x17\x00\x00\x00")
+
+func _0013_favouritesDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__0013_favouritesDownSql,
+		"0013_favourites.down.sql",
+	)
+}
+
+func _0013_favouritesDownSql() (*asset, error) {
+	bytes, err := _0013_favouritesDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "0013_favourites.down.sql", size: 23, mode: os.FileMode(0644), modTime: time.Unix(1604935076, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x32, 0xf8, 0x55, 0x13, 0x4f, 0x4a, 0x19, 0x83, 0x9c, 0xda, 0x34, 0xb8, 0x3, 0x54, 0x82, 0x1e, 0x99, 0x36, 0x6b, 0x42, 0x3, 0xf6, 0x43, 0xde, 0xe6, 0x32, 0xb6, 0xdf, 0xe2, 0x59, 0x8c, 0x84}}
+	return a, nil
+}
+
+var __0013_favouritesUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x54\xcb\xb1\xaa\xc2\x40\x10\x46\xe1\x7e\x9e\xe2\x2f\x13\xb8\x6f\x70\xab\x31\x8e\x64\x70\xcd\xca\x64\x62\x92\x72\x21\x2b\x58\xa8\x90\x55\x9f\x5f\x10\x1b\xdb\xc3\xf9\x1a\x13\x76\x81\xf3\x26\x08\x74\x87\x2e\x3a\x64\xd2\xde\x7b\x9c\xd3\xeb\xfe\x5c\x2f\x8f\x5c\x50\x11\x90\x96\x65\xcd\xa5\xe0\xc4\xd6\xb4\x6c\x9f\xb3\x1b\x42\xf8\x23\xe0\x96\xae\x19\x2e\x93\xff\xd4\xa3\xe9\x81\x6d\xc6\x5e\x66\x54\x5f\x5e\x53\x8d\x51\xbd\x8d\x83\xc3\xe2\xa8\xdb\x7f\xa2\x77\x00\x00\x00\xff\xff\xb6\x82\x8c\x1e\x84\x00\x00\x00")
+
+func _0013_favouritesUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__0013_favouritesUpSql,
+		"0013_favourites.up.sql",
+	)
+}
+
+func _0013_favouritesUpSql() (*asset, error) {
+	bytes, err := _0013_favouritesUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "0013_favourites.up.sql", size: 132, mode: os.FileMode(0644), modTime: time.Unix(1604935076, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xbe, 0x1, 0x27, 0x38, 0x76, 0xf5, 0xcb, 0x61, 0xda, 0x5b, 0xce, 0xd9, 0x8b, 0x18, 0x77, 0x61, 0x84, 0xe7, 0x22, 0xe2, 0x13, 0x99, 0xab, 0x32, 0xbc, 0xbe, 0xed, 0x1f, 0x2f, 0xb0, 0xe4, 0x8d}}
+	return a, nil
+}
+
 var __0013_identity_imagesDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xc8\x4c\x49\xcd\x2b\xc9\x2c\xa9\x8c\xcf\xcc\x4d\x4c\x4f\x2d\xb6\xe6\xe5\x02\x04\x00\x00\xff\xff\xa1\x22\x72\x37\x1d\x00\x00\x00")
 
 func _0013_identity_imagesDownSqlBytes() ([]byte, error) {
@@ -527,7 +575,7 @@ func _0013_identity_imagesDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0013_identity_images.down.sql", size: 29, mode: os.FileMode(0644), modTime: time.Unix(1603716137, 0)}
+	info := bindataFileInfo{name: "0013_identity_images.down.sql", size: 29, mode: os.FileMode(0644), modTime: time.Unix(1604935057, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x2f, 0xcf, 0xa7, 0xae, 0xd5, 0x4f, 0xcd, 0x14, 0x63, 0x9, 0xbe, 0x39, 0x49, 0x18, 0x96, 0xb2, 0xa3, 0x8, 0x7d, 0x41, 0xdb, 0x50, 0x5d, 0xf5, 0x4d, 0xa2, 0xd, 0x8f, 0x57, 0x79, 0x77, 0x67}}
 	return a, nil
 }
@@ -547,8 +595,128 @@ func _0013_identity_imagesUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0013_identity_images.up.sql", size: 224, mode: os.FileMode(0644), modTime: time.Unix(1603812877, 0)}
+	info := bindataFileInfo{name: "0013_identity_images.up.sql", size: 224, mode: os.FileMode(0644), modTime: time.Unix(1604935057, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xcc, 0x40, 0x80, 0xa3, 0x1d, 0xc0, 0x7b, 0xb8, 0xb4, 0xe8, 0x17, 0x5f, 0x4, 0xda, 0xdc, 0xe3, 0x18, 0x3, 0x31, 0xe2, 0x45, 0x19, 0xa8, 0x41, 0xae, 0x43, 0xa4, 0xeb, 0xd7, 0x66, 0x80, 0x66}}
+	return a, nil
+}
+
+var __0014_add_use_mailserversDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x01\x00\x00\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00")
+
+func _0014_add_use_mailserversDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__0014_add_use_mailserversDownSql,
+		"0014_add_use_mailservers.down.sql",
+	)
+}
+
+func _0014_add_use_mailserversDownSql() (*asset, error) {
+	bytes, err := _0014_add_use_mailserversDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "0014_add_use_mailservers.down.sql", size: 0, mode: os.FileMode(0644), modTime: time.Unix(1604935076, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8, 0x99, 0x6f, 0xb9, 0x24, 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55}}
+	return a, nil
+}
+
+var __0014_add_use_mailserversUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\x28\x4e\x2d\x29\xc9\xcc\x4b\x2f\x56\x70\x74\x71\x51\x70\xf6\xf7\x09\xf5\xf5\x53\x28\x2d\x4e\x8d\xcf\x4d\xcc\xcc\x29\x4e\x2d\x2a\x4b\x2d\x2a\x56\x70\xf2\xf7\xf7\x71\x75\xf4\x53\x70\x71\x75\x73\x0c\xf5\x09\x51\x08\x09\x0a\x75\xb5\xe6\x0a\x0d\x70\x71\x0c\x41\x32\x20\xd8\x35\x04\x43\xa7\xad\x82\xa1\x35\x17\x20\x00\x00\xff\xff\x78\x22\xcb\x3c\x6f\x00\x00\x00")
+
+func _0014_add_use_mailserversUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__0014_add_use_mailserversUpSql,
+		"0014_add_use_mailservers.up.sql",
+	)
+}
+
+func _0014_add_use_mailserversUpSql() (*asset, error) {
+	bytes, err := _0014_add_use_mailserversUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "0014_add_use_mailservers.up.sql", size: 111, mode: os.FileMode(0644), modTime: time.Unix(1604935076, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xc9, 0xba, 0x65, 0xbf, 0x1b, 0xc9, 0x6d, 0x45, 0xf2, 0xf5, 0x30, 0x7c, 0xc1, 0xde, 0xb8, 0xe3, 0x3f, 0xa9, 0x2f, 0x9f, 0xea, 0x1, 0x29, 0x29, 0x65, 0xe7, 0x38, 0xab, 0xa4, 0x62, 0xf, 0xd0}}
+	return a, nil
+}
+
+var __0015_link_previewsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x01\x00\x00\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00")
+
+func _0015_link_previewsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__0015_link_previewsDownSql,
+		"0015_link_previews.down.sql",
+	)
+}
+
+func _0015_link_previewsDownSql() (*asset, error) {
+	bytes, err := _0015_link_previewsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "0015_link_previews.down.sql", size: 0, mode: os.FileMode(0644), modTime: time.Unix(1604935076, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8, 0x99, 0x6f, 0xb9, 0x24, 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55}}
+	return a, nil
+}
+
+var __0015_link_previewsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xce\x31\x0a\x42\x31\x0c\x80\xe1\xbd\xa7\xc8\x15\x9c\x8b\x43\x6a\xe3\x14\x5f\xe5\x99\xce\x45\x31\x48\xf1\x51\xb4\xa9\x7a\x7d\x27\xc1\x49\xf0\x00\xff\xc7\x8f\x2c\x34\x83\x60\x60\x02\xd3\x31\x6a\xbb\x18\x60\x8c\xb0\x49\x9c\x77\x13\x2c\xb5\x5d\xcb\xad\xeb\xb3\xea\xab\x74\xbd\x3f\xd4\x46\xd1\x76\x3c\x2d\x7a\x86\x90\x12\x13\x4e\x10\x69\x8b\x99\x05\x64\xce\xe4\xdd\x3f\xa4\x7d\xac\x62\x75\xa8\x41\xe0\x14\xbc\xcb\xfb\x88\xf2\x15\x1f\x48\x7e\x8f\xac\x61\xe5\xdd\x3b\x00\x00\xff\xff\xe6\xf3\x89\x88\xcb\x00\x00\x00")
+
+func _0015_link_previewsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__0015_link_previewsUpSql,
+		"0015_link_previews.up.sql",
+	)
+}
+
+func _0015_link_previewsUpSql() (*asset, error) {
+	bytes, err := _0015_link_previewsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "0015_link_previews.up.sql", size: 203, mode: os.FileMode(0644), modTime: time.Unix(1604935076, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xb1, 0xf7, 0x38, 0x25, 0xa6, 0xfc, 0x6b, 0x9, 0xe4, 0xd9, 0xbf, 0x58, 0x7b, 0x80, 0xd8, 0x48, 0x63, 0xde, 0xa5, 0x5e, 0x30, 0xa3, 0xeb, 0x68, 0x8e, 0x6a, 0x9f, 0xfd, 0xf4, 0x46, 0x41, 0x34}}
+	return a, nil
+}
+
+var __0016_local_notifications_preferencesDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xc8\xc9\x4f\x4e\xcc\x89\xcf\xcb\x2f\xc9\x4c\xcb\x4c\x4e\x2c\xc9\xcc\xcf\x2b\x8e\x2f\x28\x4a\x4d\x4b\x2d\x4a\xcd\x4b\x4e\x2d\xb6\x06\x04\x00\x00\xff\xff\xf0\xdb\xee\xaa\x2b\x00\x00\x00")
+
+func _0016_local_notifications_preferencesDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__0016_local_notifications_preferencesDownSql,
+		"0016_local_notifications_preferences.down.sql",
+	)
+}
+
+func _0016_local_notifications_preferencesDownSql() (*asset, error) {
+	bytes, err := _0016_local_notifications_preferencesDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "0016_local_notifications_preferences.down.sql", size: 43, mode: os.FileMode(0644), modTime: time.Unix(1604935076, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xe0, 0x50, 0xc7, 0xdd, 0x53, 0x9c, 0x5d, 0x1e, 0xb5, 0x71, 0x25, 0x50, 0x58, 0xcf, 0x6d, 0xbe, 0x5a, 0x8, 0x12, 0xc9, 0x13, 0xd, 0x9a, 0x3d, 0x4b, 0x7a, 0x2f, 0x1b, 0xe5, 0x23, 0x52, 0x78}}
+	return a, nil
+}
+
+var __0016_local_notifications_preferencesUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x5c\x8d\x41\x0b\x82\x30\x1c\x47\xef\x7e\x8a\xdf\x51\xc1\x6f\xd0\x69\xea\x42\xc9\x5a\x8c\x99\x78\x92\x35\xff\xc2\x60\xcc\xd8\xc4\xcf\x1f\x59\x10\x75\x7d\x3c\xde\x2b\x25\x67\x8a\x43\xb1\xa2\xe5\x70\x8b\xd1\x6e\xf4\xcb\x6a\x67\x6b\xf4\x6a\x17\x1f\xc7\x47\xa0\x99\x02\x79\x43\x11\x69\x02\x00\x91\xc2\x66\x0d\xe1\xc6\x64\x59\x33\x99\xef\x90\x36\xf2\xeb\x2f\xb2\x13\xf9\x57\x89\xc2\x9f\xea\xf5\xdd\xd1\x84\x42\x88\x96\xb3\x0b\x2a\x7e\x64\x5d\xab\x30\x6b\x17\xe9\xad\x5c\x65\x73\x66\x72\xc0\x89\x0f\xe9\x67\x97\xef\x87\xfc\x1b\xcd\x92\x0c\x7d\xa3\x6a\xd1\x29\x48\xd1\x37\xd5\xe1\x19\x00\x00\xff\xff\x02\x6d\x5e\xec\xcc\x00\x00\x00")
+
+func _0016_local_notifications_preferencesUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__0016_local_notifications_preferencesUpSql,
+		"0016_local_notifications_preferences.up.sql",
+	)
+}
+
+func _0016_local_notifications_preferencesUpSql() (*asset, error) {
+	bytes, err := _0016_local_notifications_preferencesUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "0016_local_notifications_preferences.up.sql", size: 204, mode: os.FileMode(0644), modTime: time.Unix(1604935076, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x3f, 0x3a, 0x16, 0x25, 0xdf, 0xba, 0x62, 0xd3, 0x81, 0x73, 0xc, 0x10, 0x85, 0xbc, 0x8d, 0xe, 0x1d, 0x62, 0xcb, 0xb, 0x6d, 0x8c, 0x4f, 0x63, 0x5f, 0xe2, 0xd, 0xc5, 0x46, 0xa8, 0x35, 0x5b}}
 	return a, nil
 }
 
@@ -705,9 +873,25 @@ var _bindata = map[string]func() (*asset, error){
 
 	"0012_pending_transactions.up.sql": _0012_pending_transactionsUpSql,
 
+	"0013_favourites.down.sql": _0013_favouritesDownSql,
+
+	"0013_favourites.up.sql": _0013_favouritesUpSql,
+
 	"0013_identity_images.down.sql": _0013_identity_imagesDownSql,
 
 	"0013_identity_images.up.sql": _0013_identity_imagesUpSql,
+
+	"0014_add_use_mailservers.down.sql": _0014_add_use_mailserversDownSql,
+
+	"0014_add_use_mailservers.up.sql": _0014_add_use_mailserversUpSql,
+
+	"0015_link_previews.down.sql": _0015_link_previewsDownSql,
+
+	"0015_link_previews.up.sql": _0015_link_previewsUpSql,
+
+	"0016_local_notifications_preferences.down.sql": _0016_local_notifications_preferencesDownSql,
+
+	"0016_local_notifications_preferences.up.sql": _0016_local_notifications_preferencesUpSql,
 
 	"doc.go": docGo,
 }
@@ -774,9 +958,17 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"0011_allow_webview_permission_requests.up.sql":   &bintree{_0011_allow_webview_permission_requestsUpSql, map[string]*bintree{}},
 	"0012_pending_transactions.down.sql":              &bintree{_0012_pending_transactionsDownSql, map[string]*bintree{}},
 	"0012_pending_transactions.up.sql":                &bintree{_0012_pending_transactionsUpSql, map[string]*bintree{}},
+	"0013_favourites.down.sql":                        &bintree{_0013_favouritesDownSql, map[string]*bintree{}},
+	"0013_favourites.up.sql":                          &bintree{_0013_favouritesUpSql, map[string]*bintree{}},
 	"0013_identity_images.down.sql":                   &bintree{_0013_identity_imagesDownSql, map[string]*bintree{}},
 	"0013_identity_images.up.sql":                     &bintree{_0013_identity_imagesUpSql, map[string]*bintree{}},
-	"doc.go":                                          &bintree{docGo, map[string]*bintree{}},
+	"0014_add_use_mailservers.down.sql":               &bintree{_0014_add_use_mailserversDownSql, map[string]*bintree{}},
+	"0014_add_use_mailservers.up.sql":                 &bintree{_0014_add_use_mailserversUpSql, map[string]*bintree{}},
+	"0015_link_previews.down.sql":                     &bintree{_0015_link_previewsDownSql, map[string]*bintree{}},
+	"0015_link_previews.up.sql":                       &bintree{_0015_link_previewsUpSql, map[string]*bintree{}},
+	"0016_local_notifications_preferences.down.sql":   &bintree{_0016_local_notifications_preferencesDownSql, map[string]*bintree{}},
+	"0016_local_notifications_preferences.up.sql":     &bintree{_0016_local_notifications_preferencesUpSql, map[string]*bintree{}},
+	"doc.go": &bintree{docGo, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory.

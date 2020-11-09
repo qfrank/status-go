@@ -9,12 +9,6 @@ import (
 
 	"github.com/status-im/status-go/protocol/common"
 	"github.com/status-im/status-go/protocol/protobuf"
-
-	"github.com/pkg/errors"
-)
-
-var (
-	errRecordNotFound = errors.New("record not found")
 )
 
 func (db sqlitePersistence) tableUserMessagesAllFields() string {
@@ -42,6 +36,7 @@ func (db sqlitePersistence) tableUserMessagesAllFields() string {
 		audio_duration_ms,
 		audio_base64,
 		mentions,
+		links,
 		command_id,
 		command_value,
 		command_from,
@@ -77,6 +72,7 @@ func (db sqlitePersistence) tableUserMessagesAllFieldsJoin() string {
 		COALESCE(m1.audio_duration_ms,0),
 		m1.audio_base64,
 		m1.mentions,
+		m1.links,
 		m1.command_id,
 		m1.command_value,
 		m1.command_from,
@@ -115,6 +111,7 @@ func (db sqlitePersistence) tableUserMessagesScanAllFields(row scanner, message 
 	var quotedAudio sql.NullString
 	var quotedAudioDuration sql.NullInt64
 	var serializedMentions []byte
+	var serializedLinks []byte
 	var alias sql.NullString
 	var identicon sql.NullString
 
@@ -143,6 +140,7 @@ func (db sqlitePersistence) tableUserMessagesScanAllFields(row scanner, message 
 		&audio.DurationMs,
 		&message.Base64Audio,
 		&serializedMentions,
+		&serializedLinks,
 		&command.ID,
 		&command.Value,
 		&command.From,
@@ -184,6 +182,13 @@ func (db sqlitePersistence) tableUserMessagesScanAllFields(row scanner, message 
 
 	if serializedMentions != nil {
 		err := json.Unmarshal(serializedMentions, &message.Mentions)
+		if err != nil {
+			return err
+		}
+	}
+
+	if serializedLinks != nil {
+		err := json.Unmarshal(serializedLinks, &message.Links)
 		if err != nil {
 			return err
 		}
@@ -232,6 +237,15 @@ func (db sqlitePersistence) tableUserMessagesAllValues(message *common.Message) 
 			return nil, err
 		}
 	}
+
+	var serializedLinks []byte
+	if len(message.Links) != 0 {
+		serializedLinks, err = json.Marshal(message.Links)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return []interface{}{
 		message.ID,
 		message.WhisperTimestamp,
@@ -257,6 +271,7 @@ func (db sqlitePersistence) tableUserMessagesAllValues(message *common.Message) 
 		audio.DurationMs,
 		message.Base64Audio,
 		serializedMentions,
+		serializedLinks,
 		command.ID,
 		command.Value,
 		command.From,
@@ -315,7 +330,7 @@ func (db sqlitePersistence) messageByID(tx *sql.Tx, id string) (*common.Message,
 	err = db.tableUserMessagesScanAllFields(row, &message)
 	switch err {
 	case sql.ErrNoRows:
-		return nil, errRecordNotFound
+		return nil, common.ErrRecordNotFound
 	case nil:
 		return &message, nil
 	default:
@@ -356,7 +371,7 @@ func (db sqlitePersistence) MessageByCommandID(chatID, id string) (*common.Messa
 	err := db.tableUserMessagesScanAllFields(row, &message)
 	switch err {
 	case sql.ErrNoRows:
-		return nil, errRecordNotFound
+		return nil, common.ErrRecordNotFound
 	case nil:
 		return &message, nil
 	default:
@@ -452,7 +467,7 @@ func (db sqlitePersistence) MessagesByIDs(ids []string) ([]*common.Message, erro
 func (db sqlitePersistence) MessageByChatID(chatID string, currCursor string, limit int) ([]*common.Message, string, error) {
 	cursorWhere := ""
 	if currCursor != "" {
-		cursorWhere = "AND cursor <= ?"
+		cursorWhere = "AND cursor <= ?" //nolint: goconst
 	}
 	allFields := db.tableUserMessagesAllFieldsJoin()
 	args := []interface{}{chatID}
@@ -484,6 +499,78 @@ func (db sqlitePersistence) MessageByChatID(chatID string, currCursor string, li
 			ORDER BY cursor DESC
 			LIMIT ?
 		`, allFields, cursorWhere),
+		append(args, limit+1)..., // take one more to figure our whether a cursor should be returned
+	)
+	if err != nil {
+		return nil, "", err
+	}
+	defer rows.Close()
+
+	var (
+		result  []*common.Message
+		cursors []string
+	)
+	for rows.Next() {
+		var (
+			message common.Message
+			cursor  string
+		)
+		if err := db.tableUserMessagesScanAllFields(rows, &message, &cursor); err != nil {
+			return nil, "", err
+		}
+		result = append(result, &message)
+		cursors = append(cursors, cursor)
+	}
+
+	var newCursor string
+	if len(result) > limit {
+		newCursor = cursors[limit]
+		result = result[:limit]
+	}
+	return result, newCursor, nil
+}
+
+// MessageByChatIDs returns all messages for a given chatIDs in descending order.
+// Ordering is accomplished using two concatenated values: ClockValue and ID.
+// These two values are also used to compose a cursor which is returned to the result.
+func (db sqlitePersistence) MessageByChatIDs(chatIDs []string, currCursor string, limit int) ([]*common.Message, string, error) {
+	cursorWhere := ""
+	if currCursor != "" {
+		cursorWhere = "AND cursor <= ?" //nolint: goconst
+	}
+	allFields := db.tableUserMessagesAllFieldsJoin()
+	args := make([]interface{}, len(chatIDs))
+	for i, v := range chatIDs {
+		args[i] = v
+	}
+	if currCursor != "" {
+		args = append(args, currCursor)
+	}
+	// Build a new column `cursor` at the query time by having a fixed-sized clock value at the beginning
+	// concatenated with message ID. Results are sorted using this new column.
+	// This new column values can also be returned as a cursor for subsequent requests.
+	rows, err := db.db.Query(
+		fmt.Sprintf(`
+			SELECT
+				%s,
+				substr('0000000000000000000000000000000000000000000000000000000000000000' || m1.clock_value, -64, 64) || m1.id as cursor
+			FROM
+				user_messages m1
+			LEFT JOIN
+				user_messages m2
+			ON
+			m1.response_to = m2.id
+
+			LEFT JOIN
+			      contacts c
+			ON
+
+			m1.source = c.id
+			WHERE
+				NOT(m1.hide) AND m1.local_chat_id IN %s %s
+			ORDER BY cursor DESC
+			LIMIT ?
+		`, allFields, "(?"+strings.Repeat(",?", len(chatIDs)-1)+")", cursorWhere),
 		append(args, limit+1)..., // take one more to figure our whether a cursor should be returned
 	)
 	if err != nil {
@@ -854,7 +941,7 @@ func (db sqlitePersistence) EmojiReactionByID(id string) (*EmojiReaction, error)
 
 	switch err {
 	case sql.ErrNoRows:
-		return nil, errRecordNotFound
+		return nil, common.ErrRecordNotFound
 	case nil:
 		return emojiReaction, nil
 	default:
@@ -947,7 +1034,7 @@ func (db sqlitePersistence) InvitationByID(id string) (*GroupChatInvitation, err
 
 	switch err {
 	case sql.ErrNoRows:
-		return nil, errRecordNotFound
+		return nil, common.ErrRecordNotFound
 	case nil:
 		return chatInvitations, nil
 	default:

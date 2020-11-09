@@ -6,9 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"math/big"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -63,9 +61,8 @@ type MessengerSuite struct {
 	privateKey *ecdsa.PrivateKey // private key for the main instance of Messenger
 	// If one wants to send messages between different instances of Messenger,
 	// a single Whisper service should be shared.
-	shh      types.Waku
-	tmpFiles []*os.File // files to clean up
-	logger   *zap.Logger
+	shh    types.Waku
+	logger *zap.Logger
 }
 
 type testNode struct {
@@ -111,13 +108,10 @@ func (s *MessengerSuite) SetupTest() {
 }
 
 func (s *MessengerSuite) newMessengerWithKey(shh types.Waku, privateKey *ecdsa.PrivateKey) *Messenger {
-	tmpFile, err := ioutil.TempFile("", "")
-	s.Require().NoError(err)
-
 	options := []Option{
 		WithCustomLogger(s.logger),
 		WithMessagesPersistenceEnabled(),
-		WithDatabaseConfig(tmpFile.Name(), "some-key"),
+		WithDatabaseConfig(":memory:", "some-key"),
 	}
 	if s.enableDataSync {
 		options = append(options, WithDatasync())
@@ -133,8 +127,6 @@ func (s *MessengerSuite) newMessengerWithKey(shh types.Waku, privateKey *ecdsa.P
 	err = m.Init()
 	s.Require().NoError(err)
 
-	s.tmpFiles = append(s.tmpFiles, tmpFile)
-
 	return m
 }
 
@@ -146,9 +138,6 @@ func (s *MessengerSuite) newMessenger(shh types.Waku) *Messenger {
 
 func (s *MessengerSuite) TearDownTest() {
 	s.Require().NoError(s.m.Shutdown())
-	for _, f := range s.tmpFiles {
-		_ = os.Remove(f.Name())
-	}
 	_ = s.logger.Sync()
 }
 
@@ -300,7 +289,7 @@ func buildTestMessage(chat Chat) *common.Message {
 	message.LocalChatID = chat.ID
 	message.ContentType = protobuf.ChatMessage_TEXT_PLAIN
 	switch chat.ChatType {
-	case ChatTypePublic:
+	case ChatTypePublic, ChatTypeProfile:
 		message.MessageType = protobuf.MessageType_PUBLIC_GROUP
 	case ChatTypeOneToOne:
 		message.MessageType = protobuf.MessageType_ONE_TO_ONE
@@ -374,6 +363,33 @@ func (s *MessengerSuite) TestSendPublic() {
 	s.Require().Equal(uint64(100000000000001), chat.LastClockValue, "it correctly sets the last-clock-value")
 	s.Require().NotEqual(uint64(0), chat.Timestamp, "it sets the timestamp")
 	s.Require().Equal("0x"+hex.EncodeToString(crypto.FromECDSAPub(&s.privateKey.PublicKey)), outputMessage.From, "it sets the From field")
+	s.Require().True(outputMessage.Seen, "it marks the message as seen")
+	s.Require().Equal(outputMessage.OutgoingStatus, common.OutgoingStatusSending, "it marks the message as sending")
+	s.Require().NotEmpty(outputMessage.ID, "it sets the ID field")
+	s.Require().Equal(protobuf.MessageType_PUBLIC_GROUP, outputMessage.MessageType)
+
+	savedMessages, _, err := s.m.MessageByChatID(chat.ID, "", 10)
+	s.Require().NoError(err)
+	s.Require().Equal(1, len(savedMessages), "it saves the message")
+}
+
+func (s *MessengerSuite) TestSendProfile() {
+	chat := CreateProfileChat("test-chat-profile", "0x"+hex.EncodeToString(crypto.FromECDSAPub(&s.privateKey.PublicKey)), s.m.transport)
+	chat.LastClockValue = uint64(100000000000000)
+	err := s.m.SaveChat(&chat)
+	s.NoError(err)
+	inputMessage := buildTestMessage(chat)
+	response, err := s.m.SendChatMessage(context.Background(), inputMessage)
+	s.NoError(err)
+
+	s.Require().Equal(1, len(response.Messages), "it returns the message")
+	outputMessage := response.Messages[0]
+
+	s.Require().Equal(uint64(100000000000001), outputMessage.Clock, "it correctly sets the clock")
+	s.Require().Equal(uint64(100000000000001), chat.LastClockValue, "it correctly sets the last-clock-value")
+	s.Require().NotEqual(uint64(0), chat.Timestamp, "it sets the timestamp")
+	s.Require().Equal("0x"+hex.EncodeToString(crypto.FromECDSAPub(&s.privateKey.PublicKey)), outputMessage.From, "it sets the From field")
+	s.Require().Equal(chat.Profile, outputMessage.From, "From equal to chat Profile")
 	s.Require().True(outputMessage.Seen, "it marks the message as seen")
 	s.Require().Equal(outputMessage.OutgoingStatus, common.OutgoingStatusSending, "it marks the message as sending")
 	s.Require().NotEmpty(outputMessage.ID, "it sets the ID field")

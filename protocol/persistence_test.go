@@ -586,3 +586,30 @@ func TestSqlitePersistence_GetWhenChatIdentityLastPublished(t *testing.T) {
 	require.NoError(t, err)
 	require.Exactly(t, int64(0), *ts2)
 }
+
+func TestSaveLinks(t *testing.T) {
+	chatID := testPublicChatID
+	db, err := openTestDB()
+	require.NoError(t, err)
+	p := sqlitePersistence{db: db}
+
+	require.NoError(t, err)
+
+	message := common.Message{
+		ID:          "1",
+		LocalChatID: chatID,
+		ChatMessage: protobuf.ChatMessage{Text: "some-text"},
+		From:        "me",
+		Links:       []string{"https://github.com/status-im/status-react"},
+	}
+
+	err = p.SaveMessages([]*common.Message{&message})
+	require.NoError(t, err)
+
+	retrievedMessages, _, err := p.MessageByChatID(chatID, "", 10)
+	require.NoError(t, err)
+	require.Len(t, retrievedMessages, 1)
+	require.Len(t, retrievedMessages[0].Links, 1)
+	require.Equal(t, retrievedMessages[0].Links, message.Links)
+
+}

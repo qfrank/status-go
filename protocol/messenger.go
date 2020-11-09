@@ -628,11 +628,12 @@ func (m *Messenger) Init() error {
 		}
 
 		m.allChats[chat.ID] = chat
-		if !chat.Active {
+		if !chat.Active || chat.Timeline() {
 			continue
 		}
+
 		switch chat.ChatType {
-		case ChatTypePublic:
+		case ChatTypePublic, ChatTypeProfile:
 			publicChatIDs = append(publicChatIDs, chat.ID)
 		case ChatTypeOneToOne:
 			pk, err := chat.PublicKey()
@@ -803,7 +804,7 @@ func (m *Messenger) Join(chat Chat) error {
 			return err
 		}
 		return m.transport.JoinGroup(members)
-	case ChatTypePublic:
+	case ChatTypePublic, ChatTypeProfile, ChatTypeTimeline:
 		return m.transport.JoinPublic(chat.ID)
 	default:
 		return errors.New("chat is neither public nor private")
@@ -826,7 +827,7 @@ func (m *Messenger) Leave(chat Chat) error {
 			return err
 		}
 		return m.transport.LeaveGroup(members)
-	case ChatTypePublic:
+	case ChatTypePublic, ChatTypeProfile, ChatTypeTimeline:
 		return m.transport.LeavePublic(chat.Name)
 	default:
 		return errors.New("chat is neither public nor private")
@@ -853,18 +854,22 @@ func (m *Messenger) CreateGroupChatWithMembers(ctx context.Context, name string,
 	chat.updateChatFromGroupMembershipChanges(contactIDFromPublicKey(&m.identity.PublicKey), group)
 
 	clock, _ = chat.NextClockAndTimestamp(m.getTimesource())
+
 	// Add members
-	event := v1protocol.NewMembersAddedEvent(members, clock)
-	event.ChatID = chat.ID
-	err = event.Sign(m.identity)
-	if err != nil {
-		return nil, err
+	if len(members) > 0 {
+		event := v1protocol.NewMembersAddedEvent(members, clock)
+		event.ChatID = chat.ID
+		err = event.Sign(m.identity)
+		if err != nil {
+			return nil, err
+		}
+
+		err = group.ProcessEvent(event)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	err = group.ProcessEvent(event)
-	if err != nil {
-		return nil, err
-	}
 	recipients, err := stringSliceToPublicKeys(group.Members(), true)
 	if err != nil {
 		return nil, err
@@ -1020,7 +1025,7 @@ func (m *Messenger) AddMembersToGroupChat(ctx context.Context, chatID string, me
 		}
 
 		groupChatInvitation, err = m.persistence.InvitationByID(groupChatInvitation.ID())
-		if err != nil && err != errRecordNotFound {
+		if err != nil && err != common.ErrRecordNotFound {
 			return nil, err
 		}
 		if groupChatInvitation != nil {
@@ -1507,19 +1512,23 @@ func (m *Messenger) saveChat(chat *Chat) error {
 	}
 
 	// We check if it's a new chat, or chat.Active has changed
-	if chat.Public() && (!ok && chat.Active) || (ok && chat.Active != previousChat.Active) {
-		// Re-register for push notifications, as we want to receive mentions
-		if err := m.reregisterForPushNotifications(); err != nil {
-			return err
-		}
-
-	}
+	// we check here, but we only re-register once the chat has been
+	// saved an added
+	shouldRegisterForPushNotifications := chat.Public() && (!ok && chat.Active) || (ok && chat.Active != previousChat.Active)
 
 	err := m.persistence.SaveChat(*chat)
 	if err != nil {
 		return err
 	}
 	m.allChats[chat.ID] = chat
+
+	if shouldRegisterForPushNotifications {
+		// Re-register for push notifications, as we want to receive mentions
+		if err := m.reregisterForPushNotifications(); err != nil {
+			return err
+		}
+
+	}
 
 	return nil
 }
@@ -1783,7 +1792,7 @@ func (m *Messenger) dispatchMessage(ctx context.Context, spec common.RawMessage)
 			return nil, err
 		}
 
-	case ChatTypePublic:
+	case ChatTypePublic, ChatTypeProfile:
 		logger.Debug("sending public message", zap.String("chatName", chat.Name))
 		id, err = m.processor.SendPublic(ctx, chat.ID, spec)
 		if err != nil {
@@ -2714,6 +2723,20 @@ func (m *Messenger) MessagesExist(ids []string) (map[string]bool, error) {
 }
 
 func (m *Messenger) MessageByChatID(chatID, cursor string, limit int) ([]*common.Message, string, error) {
+	chat, err := m.persistence.Chat(chatID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if chat.Timeline() {
+		var chatIDs = []string{"@" + contactIDFromPublicKey(&m.identity.PublicKey)}
+		for _, contact := range m.allContacts {
+			if contact.IsAdded() {
+				chatIDs = append(chatIDs, "@"+contact.ID)
+			}
+		}
+		return m.persistence.MessageByChatIDs(chatIDs, cursor, limit)
+	}
 	return m.persistence.MessageByChatID(chatID, cursor, limit)
 }
 
@@ -3330,7 +3353,7 @@ func (m *Messenger) AcceptRequestTransaction(ctx context.Context, transactionHas
 
 	// Hide previous message
 	previousMessage, err := m.persistence.MessageByCommandID(chatID, messageID)
-	if err != nil && err != errRecordNotFound {
+	if err != nil && err != common.ErrRecordNotFound {
 		return nil, err
 	}
 
@@ -3554,7 +3577,7 @@ func (m *Messenger) ValidateTransactions(ctx context.Context, addresses []types.
 		if len(message.CommandParameters.ID) != 0 {
 			// Hide previous message
 			previousMessage, err := m.persistence.MessageByCommandID(chatID, message.CommandParameters.ID)
-			if err != nil && err != errRecordNotFound {
+			if err != nil && err != common.ErrRecordNotFound {
 				return nil, err
 			}
 
@@ -3927,7 +3950,7 @@ func (m *Messenger) encodeChatEntity(chat *Chat, message common.ChatEntity) ([]b
 		if err != nil {
 			return nil, err
 		}
-	case ChatTypePublic:
+	case ChatTypePublic, ChatTypeProfile:
 		l.Debug("sending public message", zap.String("chatName", chat.Name))
 		message.SetMessageType(protobuf.MessageType_PUBLIC_GROUP)
 		encodedMessage, err = proto.Marshal(message.GetProtobuf())

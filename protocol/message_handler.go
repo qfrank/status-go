@@ -73,7 +73,7 @@ func (m *MessageHandler) HandleMembershipUpdate(messageState *ReceivedMessageSta
 			}
 
 			groupChatInvitation, err = m.persistence.InvitationByID(groupChatInvitation.ID())
-			if err != nil && err != errRecordNotFound {
+			if err != nil && err != common.ErrRecordNotFound {
 				return err
 			}
 			if groupChatInvitation != nil {
@@ -349,6 +349,11 @@ func (m *MessageHandler) HandleChatMessage(state *ReceivedMessageState) error {
 		return err // matchChatEntity returns a descriptive error message
 	}
 
+	// If profile updates check if author is the same as chat profile public key
+	if chat.ProfileUpdates() && receivedMessage.From != chat.Profile {
+		return nil
+	}
+
 	// If deleted-at is greater, ignore message
 	if chat.DeletedAtClockValue >= receivedMessage.Clock {
 		return nil
@@ -479,7 +484,7 @@ func (m *MessageHandler) HandleAcceptRequestAddressForTransaction(messageState *
 
 	// Hide previous message
 	previousMessage, err := m.persistence.MessageByCommandID(messageState.CurrentMessageState.Contact.ID, command.Id)
-	if err != nil && err != errRecordNotFound {
+	if err != nil && err != common.ErrRecordNotFound {
 		return err
 	}
 
@@ -691,7 +696,7 @@ func (m *MessageHandler) messageExists(messageID string, existingMessagesMap map
 	// Check against the database, this is probably a bit slow for
 	// each message, but for now might do, we'll make it faster later
 	existingMessage, err := m.persistence.MessageByID(messageID)
-	if err != nil && err != errRecordNotFound {
+	if err != nil && err != common.ErrRecordNotFound {
 		return false, err
 	}
 	if existingMessage != nil {
@@ -716,7 +721,7 @@ func (m *MessageHandler) HandleEmojiReaction(state *ReceivedMessageState, pbEmoj
 	}
 
 	existingEmoji, err := m.persistence.EmojiReactionByID(emojiReaction.ID())
-	if err != errRecordNotFound && err != nil {
+	if err != common.ErrRecordNotFound && err != nil {
 		return err
 	}
 
@@ -775,7 +780,7 @@ func (m *MessageHandler) HandleGroupChatInvitation(state *ReceivedMessageState, 
 	}
 
 	existingInvitation, err := m.persistence.InvitationByID(groupChatInvitation.ID())
-	if err != errRecordNotFound && err != nil {
+	if err != common.ErrRecordNotFound && err != nil {
 		return err
 	}
 

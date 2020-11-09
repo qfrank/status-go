@@ -106,7 +106,7 @@ func (api *API) GetTransfersByAddress(ctx context.Context, address common.Addres
 }
 
 // GetTokensBalances return mapping of token balances for every account.
-func (api *API) GetTokensBalances(ctx context.Context, accounts, tokens []common.Address) (map[common.Address]map[common.Address]*big.Int, error) {
+func (api *API) GetTokensBalances(ctx context.Context, accounts, tokens []common.Address) (map[common.Address]map[common.Address]*hexutil.Big, error) {
 	if api.s.client == nil {
 		return nil, ErrServiceNotInitialized
 	}
@@ -159,5 +159,19 @@ func (api *API) DeletePendingTransaction(ctx context.Context, transactionHash co
 	log.Debug("call to remove pending transaction")
 	err := api.s.db.DeletePendingTransaction(transactionHash)
 	log.Debug("result from database for remove pending transaction", "err", err)
+	return err
+}
+
+func (api *API) GetFavourites(ctx context.Context) ([]*Favourite, error) {
+	log.Debug("call to get favourites")
+	rst, err := api.s.db.GetFavourites()
+	log.Debug("result from database for favourites", "len", len(rst))
+	return rst, err
+}
+
+func (api *API) AddFavourite(ctx context.Context, favourite Favourite) error {
+	log.Debug("call to create or update favourites")
+	err := api.s.db.AddFavourite(favourite)
+	log.Debug("result from database for create or update favouritesn", "err", err)
 	return err
 }

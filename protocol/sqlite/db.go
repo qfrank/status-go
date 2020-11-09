@@ -25,7 +25,7 @@ const defaultKdfIterationsNumber = 64000 // nolint: deadcode,varcheck,unused
 // https://notes.status.im/i8Y_l7ccTiOYq09HVgoFwA
 const reducedKdfIterationsNumber = 3200
 
-const inMemoryPath = ":memory:"
+const InMemoryPath = ":memory:"
 
 // MigrationConfig is a struct that allows to define bindata migrations.
 type MigrationConfig struct {
@@ -42,7 +42,7 @@ func Open(path, key string) (*sql.DB, error) {
 // OpenInMemory opens an in memory SQLite database.
 // Number of KDF iterations is reduced to 0.
 func OpenInMemory() (*sql.DB, error) {
-	return open(inMemoryPath, "", 0)
+	return open(InMemoryPath, "", 0)
 }
 
 // OpenWithIter allows to open a new database with a custom number of kdf iterations.
@@ -52,7 +52,7 @@ func OpenWithIter(path, key string, kdfIter int) (*sql.DB, error) {
 }
 
 func open(path string, key string, kdfIter int) (*sql.DB, error) {
-	if path != inMemoryPath {
+	if path != InMemoryPath {
 		_, err := os.OpenFile(path, os.O_CREATE, 0600)
 		if err != nil {
 			return nil, err
@@ -119,6 +119,18 @@ func ApplyMigrations(db *sql.DB, assetNames []string, assetGetter func(name stri
 	)
 	if err != nil {
 		return errors.Wrap(err, "failed to create migration instance")
+	}
+
+	version, dirty, err := m.Version()
+	if err != nil && err != migrate.ErrNilVersion {
+		return errors.Wrap(err, "could not get version")
+	}
+
+	// Force version if dirty
+	if dirty {
+		if err = m.Force(int(version)); err != nil {
+			return errors.Wrap(err, "failed to force migration")
+		}
 	}
 
 	if err = m.Up(); err != migrate.ErrNoChange {
