@@ -3,5 +3,6 @@ CREATE TABLE IF NOT EXISTS organisations_organisations (
   private_key BLOB,
   description BLOB NOT NULL,
   joined BOOLEAN NOT NULL DEFAULT FALSE,
+  verified BOOLEAN NOT NULL DEFAULT FALSE,
   UNIQUE(id) ON CONFLICT REPLACE
 );
