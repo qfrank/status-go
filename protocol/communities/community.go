@@ -24,6 +24,7 @@ type Config struct {
 	MarshaledCommunityDescription []byte
 	ID                            *ecdsa.PublicKey
 	Joined                        bool
+	Verified                      bool
 	Logger                        *zap.Logger
 }
 
@@ -51,11 +52,13 @@ func (o *Community) MarshalJSON() ([]byte, error) {
 		ID                             string `json:"id"`
 		*protobuf.CommunityDescription `json:"description"`
 		Admin                          bool `json:"admin"`
+		Verified                       bool `json:"verified"`
 		Joined                         bool `json:"joined"`
 	}{
 		ID:                   o.IDString(),
 		CommunityDescription: o.config.CommunityDescription,
 		Admin:                o.IsAdmin(),
+		Verified:             o.config.Verified,
 		Joined:               o.config.Joined,
 	}
 	return json.Marshal(item)

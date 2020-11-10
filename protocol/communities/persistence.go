@@ -27,14 +27,14 @@ func (p *Persistence) SaveCommunity(community *Community) error {
 
 	p.logger.Debug("SAVING", zap.String("id", types.EncodeHex(id)))
 
-	_, err = p.db.Exec(`INSERT INTO communities_communities (id, private_key, description, joined) VALUES (?, ?, ?,?)`, id, crypto.FromECDSA(privateKey), description, community.config.Joined)
+	_, err = p.db.Exec(`INSERT INTO communities_communities (id, private_key, description, joined, verified) VALUES (?, ?, ?,?,?)`, id, crypto.FromECDSA(privateKey), description, community.config.Joined, community.config.Verified)
 	return err
 }
 
 func (p *Persistence) queryCommunities(query string) ([]*Community, error) {
 	var response []*Community
 
-	rows, err := p.db.Query(`SELECT id, private_key, description,joined FROM communities_communities`)
+	rows, err := p.db.Query(`SELECT id, private_key, description,joined,verified FROM communities_communities`)
 	if err != nil {
 		return nil, err
 	}
@@ -43,12 +43,13 @@ func (p *Persistence) queryCommunities(query string) ([]*Community, error) {
 	for rows.Next() {
 		var publicKeyBytes, privateKeyBytes, descriptionBytes []byte
 		var joined bool
-		err := rows.Scan(&publicKeyBytes, &privateKeyBytes, &descriptionBytes, &joined)
+		var verified bool
+		err := rows.Scan(&publicKeyBytes, &privateKeyBytes, &descriptionBytes, &joined, &verified)
 		if err != nil {
 			return nil, err
 		}
 
-		org, err := unmarshalCommunityFromDB(publicKeyBytes, privateKeyBytes, descriptionBytes, joined, p.logger)
+		org, err := unmarshalCommunityFromDB(publicKeyBytes, privateKeyBytes, descriptionBytes, joined, verified, p.logger)
 		if err != nil {
 			return nil, err
 		}
@@ -61,25 +62,26 @@ func (p *Persistence) queryCommunities(query string) ([]*Community, error) {
 }
 
 func (p *Persistence) AllCommunities() ([]*Community, error) {
-	query := `SELECT id, private_key, description,joined FROM communities_communities`
+	query := `SELECT id, private_key, description,joined,verified FROM communities_communities`
 	return p.queryCommunities(query)
 }
 
 func (p *Persistence) JoinedCommunities() ([]*Community, error) {
-	query := `SELECT id, private_key, description,joined FROM communities_communities WHERE joined`
+	query := `SELECT id, private_key, description,joined,verified FROM communities_communities WHERE joined`
 	return p.queryCommunities(query)
 }
 
 func (p *Persistence) CreatedCommunities() ([]*Community, error) {
-	query := `SELECT id, private_key, description,joined FROM communities_communities WHERE private_key IS NOT NULL`
+	query := `SELECT id, private_key, description,joined,verified FROM communities_communities WHERE private_key IS NOT NULL`
 	return p.queryCommunities(query)
 }
 
 func (p *Persistence) GetByID(id []byte) (*Community, error) {
 	var publicKeyBytes, privateKeyBytes, descriptionBytes []byte
 	var joined bool
+	var verified bool
 
-	err := p.db.QueryRow(`SELECT id, private_key, description, joined FROM communities_communities WHERE id = ?`, id).Scan(&publicKeyBytes, &privateKeyBytes, &descriptionBytes, &joined)
+	err := p.db.QueryRow(`SELECT id, private_key, description, joined,verified FROM communities_communities WHERE id = ?`, id).Scan(&publicKeyBytes, &privateKeyBytes, &descriptionBytes, &joined, &verified)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -87,10 +89,10 @@ func (p *Persistence) GetByID(id []byte) (*Community, error) {
 		return nil, err
 	}
 
-	return unmarshalCommunityFromDB(publicKeyBytes, privateKeyBytes, descriptionBytes, joined, p.logger)
+	return unmarshalCommunityFromDB(publicKeyBytes, privateKeyBytes, descriptionBytes, joined, verified, p.logger)
 }
 
-func unmarshalCommunityFromDB(publicKeyBytes, privateKeyBytes, descriptionBytes []byte, joined bool, logger *zap.Logger) (*Community, error) {
+func unmarshalCommunityFromDB(publicKeyBytes, privateKeyBytes, descriptionBytes []byte, joined, verified bool, logger *zap.Logger) (*Community, error) {
 
 	var privateKey *ecdsa.PrivateKey
 	var err error
@@ -126,6 +128,7 @@ func unmarshalCommunityFromDB(publicKeyBytes, privateKeyBytes, descriptionBytes 
 		MarshaledCommunityDescription: descriptionBytes,
 		Logger:                        logger,
 		ID:                            id,
+		Verified:                      verified,
 		Joined:                        joined,
 	}
 	return New(config)
