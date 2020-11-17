@@ -55,7 +55,9 @@ func (t *NodeTransport) Send(_ state.PeerID, peer state.PeerID, payload protobuf
 		return errNotInitialized
 	}
 
-	payloads := splitPayloadInBatches(&payload, int(t.maxMessageSize))
+	t.logger.Info("sending datasync message", zap.Int("max-message-size", int(t.maxMessageSize)))
+
+	payloads := splitPayloadInBatches(&payload, int(t.maxMessageSize), t.logger)
 	for _, payload := range payloads {
 
 		data, err := proto.Marshal(payload)
@@ -77,7 +79,7 @@ func (t *NodeTransport) Send(_ state.PeerID, peer state.PeerID, payload protobuf
 	return lastError
 }
 
-func splitPayloadInBatches(payload *protobuf.Payload, maxSizeBytes int) []*protobuf.Payload {
+func splitPayloadInBatches(payload *protobuf.Payload, maxSizeBytes int, logger *zap.Logger) []*protobuf.Payload {
 	newPayload := &protobuf.Payload{}
 	var response []*protobuf.Payload
 	currentSize := payloadTagSize
@@ -85,6 +87,7 @@ func splitPayloadInBatches(payload *protobuf.Payload, maxSizeBytes int) []*proto
 	// this is not going to be 100% accurate, but should be fine in most cases, faster
 	// than using proto.Size
 	for _, ack := range payload.Acks {
+		logger.Info("Checking acks", zap.Int("size", currentSize))
 		if len(ack)+currentSize+1 > maxSizeBytes {
 			// We check if it's valid as it might be that the initial message
 			// is too big, in this case we still batch it
@@ -100,6 +103,7 @@ func splitPayloadInBatches(payload *protobuf.Payload, maxSizeBytes int) []*proto
 	}
 
 	for _, offer := range payload.Offers {
+		logger.Info("Checking offers", zap.Int("size", currentSize))
 		if len(offer)+currentSize+1 > maxSizeBytes {
 			if newPayload.IsValid() {
 				response = append(response, newPayload)
@@ -113,6 +117,7 @@ func splitPayloadInBatches(payload *protobuf.Payload, maxSizeBytes int) []*proto
 	}
 
 	for _, request := range payload.Requests {
+		logger.Info("Checking requests", zap.Int("size", currentSize))
 		if len(request)+currentSize+1 > maxSizeBytes {
 			if newPayload.IsValid() {
 				response = append(response, newPayload)
@@ -126,9 +131,11 @@ func splitPayloadInBatches(payload *protobuf.Payload, maxSizeBytes int) []*proto
 	}
 
 	for _, message := range payload.Messages {
+		logger.Info("Checking messages", zap.Int("size", currentSize), zap.Int("message-size", len(message.Body)))
 		// We add the body size, the length field for payload, the length field for group id,
 		// the length of timestamp, body and groupid
 		if currentSize+1+1+timestampPayloadSize+len(message.Body)+len(message.GroupId) > maxSizeBytes {
+			logger.Info("splitting message")
 			if newPayload.IsValid() {
 				response = append(response, newPayload)
 			}
@@ -143,6 +150,7 @@ func splitPayloadInBatches(payload *protobuf.Payload, maxSizeBytes int) []*proto
 	if newPayload.IsValid() {
 		response = append(response, newPayload)
 	}
+	logger.Info("split messages", zap.Int("count", len(response)))
 	return response
 }
 
