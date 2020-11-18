@@ -319,7 +319,7 @@ func (db sqlitePersistence) Chat(chatID string) (*Chat, error) {
 			membership_updates,
 			muted,
 			invitation_admin,
-			profile
+			profile,
 			community_id
 		FROM chats
 		WHERE id = ?

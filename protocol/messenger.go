@@ -503,7 +503,8 @@ func (m *Messenger) handleCommunitiesSubscription(c chan *communities.Subscripti
 					m.logger.Warn("failed to retrieve orgs", zap.Error(err))
 				}
 
-				for _, org := range orgs {
+				for idx := range orgs {
+					org := orgs[idx]
 					err := m.publishOrg(org)
 					if err != nil {
 						m.logger.Warn("failed to publish org", zap.Error(err))
