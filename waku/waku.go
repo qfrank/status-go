@@ -1127,7 +1127,7 @@ func (w *Waku) OnNewEnvelopes(envelopes []*common.Envelope, peer common.Peer) ([
 	}
 
 	for _, env := range envelopes {
-		w.logger.Debug("received new envelope", zap.String("peer", peerID), zap.String("hash", env.Hash().Hex()))
+		w.logger.Info("received new envelope", zap.String("peer", peerID), zap.String("hash", env.Hash().Hex()))
 		cached, err := w.add(env, w.LightClientMode())
 		if err != nil {
 			_, isTimeSyncError := err.(common.TimeSyncError)
@@ -1324,7 +1324,7 @@ func (w *Waku) addAndBridge(envelope *common.Envelope, isP2P bool, bridged bool)
 			log.Warn("very old envelope", "hash", envelope.Hash())
 			return false, common.TimeSyncError(errors.New("very old envelope"))
 		}
-		log.Debug("expired envelope dropped", "hash", envelope.Hash().Hex())
+		log.Info("expired envelope dropped", "hash", envelope.Hash().Hex())
 		common.EnvelopesCacheFailedCounter.WithLabelValues("expired").Inc()
 		return false, nil // drop envelope without error
 	}

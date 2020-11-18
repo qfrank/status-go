@@ -26,7 +26,9 @@ import (
 
 // Whisper message properties.
 const (
-	whisperTTL        = 15
+	whisperTTL          = 15
+	whisperLargeSizeTTL = 30
+
 	whisperDefaultPoW = 0.002
 	// whisperLargeSizePoW is the PoWTarget for larger payload sizes
 	whisperLargeSizePoW = 0.000002
@@ -345,7 +347,7 @@ func (p *MessageProcessor) SendPublic(
 		}
 	} else {
 		newMessage = &types.NewMessage{
-			TTL:       whisperTTL,
+			TTL:       calculateTTL(wrappedMessage),
 			Payload:   wrappedMessage,
 			PowTarget: calculatePoW(wrappedMessage),
 			PowTime:   whisperPoWTime,
@@ -550,7 +552,7 @@ func (p *MessageProcessor) sendDataSync(ctx context.Context, publicKey *ecdsa.Pu
 // sendPrivateRawMessage sends a message not wrapped in an encryption layer
 func (p *MessageProcessor) sendPrivateRawMessage(ctx context.Context, publicKey *ecdsa.PublicKey, payload []byte, messageIDs [][]byte) ([]byte, *types.NewMessage, error) {
 	newMessage := &types.NewMessage{
-		TTL:       whisperTTL,
+		TTL:       calculateTTL(payload),
 		Payload:   payload,
 		PowTarget: calculatePoW(payload),
 		PowTime:   whisperPoWTime,
@@ -659,7 +661,7 @@ func MessageSpecToWhisper(spec *encryption.ProtocolMessageSpec) (*types.NewMessa
 	}
 
 	newMessage = &types.NewMessage{
-		TTL:       whisperTTL,
+		TTL:       calculateTTL(payload),
 		Payload:   payload,
 		PowTarget: calculatePoW(payload),
 		PowTime:   whisperPoWTime,
@@ -676,4 +678,11 @@ func calculatePoW(payload []byte) float64 {
 		return whisperLargeSizePoW
 	}
 	return whisperDefaultPoW
+}
+
+func calculateTTL(payload []byte) uint32 {
+	if len(payload) > largeSizeInBytes {
+		return whisperLargeSizeTTL
+	}
+	return whisperTTL
 }
