@@ -15,7 +15,7 @@ func SetupIterativeDownloader(
 	downloader BatchDownloader, size *big.Int, to *big.Int, from *big.Int) (*IterativeDownloader, error) {
 
 	if to == nil || from == nil {
-		return nil, errors.New("to or from cannot be nil")
+		return nil, errors.New("to or from cannnot be nil")
 	}
 
 	adjustedSize := big.NewInt(0).Div(big.NewInt(0).Sub(to, from), big.NewInt(10))
