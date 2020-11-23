@@ -643,6 +643,7 @@ func MakeMessagesRequestPayload(r MessagesRequest) ([]byte, error) {
 	payload := mailserver.MessagesRequestPayload{
 		Lower:  r.From,
 		Upper:  r.To,
+		Bloom:  createBloomFilter(r),
 		Topics: topicsToByteArray(r.Topics),
 		Limit:  r.Limit,
 		Cursor: cursor,
