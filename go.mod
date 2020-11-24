@@ -9,10 +9,10 @@ replace github.com/Sirupsen/logrus v1.4.2 => github.com/sirupsen/logrus v1.4.2
 replace github.com/docker/docker => github.com/docker/engine v1.4.2-0.20190717161051-705d9623b7c1
 
 require (
+	github.com/PuerkitoBio/goquery v1.6.0 // indirect
 	github.com/beevik/ntp v0.2.0
 	github.com/btcsuite/btcd v0.20.1-beta
 	github.com/cenkalti/backoff/v3 v3.2.2
-	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v1.7.1
 	github.com/ethereum/go-ethereum v1.9.5
 	github.com/gballet/go-libpcsclite v0.0.0-20191108122812-4678299bea08 // indirect
@@ -31,6 +31,7 @@ require (
 	github.com/libp2p/go-libp2p v0.4.2 // indirect
 	github.com/libp2p/go-libp2p-core v0.2.4
 	github.com/lucasb-eyer/go-colorful v1.0.3
+	github.com/mat/besticon v3.12.0+incompatible
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.10 // indirect
 	github.com/mattn/go-pointer v0.0.0-20190911064623-a0a44394634f
@@ -69,7 +70,6 @@ require (
 	go.uber.org/zap v1.13.0
 	golang.org/x/crypto v0.0.0-20191122220453-ac88ee75c92c
 	golang.org/x/image v0.0.0-20200927104501-e162460cd6b5
-	golang.org/x/net v0.0.0-20191119073136-fc4aabc6c914 // indirect
 	golang.org/x/text v0.3.3 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	golang.org/x/tools v0.0.0-20200211045251-2de505fc5306 // indirect
