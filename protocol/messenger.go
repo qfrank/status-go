@@ -1543,6 +1543,10 @@ func (m *Messenger) Communities() ([]*communities.Community, error) {
 	return m.communitiesManager.All()
 }
 
+func (m *Messenger) JoinedCommunities() ([]*communities.Community, error) {
+	return m.communitiesManager.Joined()
+}
+
 func (m *Messenger) JoinCommunity(communityID string) (*MessengerResponse, error) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
@@ -1576,7 +1580,6 @@ func (m *Messenger) JoinCommunity(communityID string) (*MessengerResponse, error
 	return response, m.saveChats(response.Chats)
 }
 
-// TODO: Test this, make sure is actually removed
 func (m *Messenger) LeaveCommunity(communityID string) (*MessengerResponse, error) {
 	response := &MessengerResponse{}
 

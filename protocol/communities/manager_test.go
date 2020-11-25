@@ -1,6 +1,7 @@
 package communities
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
@@ -45,8 +46,15 @@ func (s *ManagerSuite) TestCreateCommunity() {
 
 	communities, err := s.manager.All()
 	s.Require().NoError(err)
-	s.Require().Len(communities, 1)
-	s.Require().Equal(community.ID(), communities[0].ID())
-	s.Require().Equal(community.PrivateKey(), communities[0].PrivateKey())
-	s.Require().True(proto.Equal(community.config.CommunityDescription, communities[0].config.CommunityDescription))
+	// Consider status default community
+	s.Require().Len(communities, 2)
+
+	actualCommunity := communities[0]
+	if bytes.Equal(community.ID(), communities[1].ID()) {
+		actualCommunity = communities[1]
+	}
+
+	s.Require().Equal(community.ID(), actualCommunity.ID())
+	s.Require().Equal(community.PrivateKey(), actualCommunity.PrivateKey())
+	s.Require().True(proto.Equal(community.config.CommunityDescription, actualCommunity.config.CommunityDescription))
 }

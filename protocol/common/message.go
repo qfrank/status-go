@@ -162,7 +162,7 @@ func (m *Message) MarshalJSON() ([]byte, error) {
 		Image             string                           `json:"image,omitempty"`
 		Audio             string                           `json:"audio,omitempty"`
 		AudioDurationMs   uint64                           `json:"audioDurationMs,omitempty"`
-		CommunityID    string                           `json:"communityId,omitempty"`
+		CommunityID       string                           `json:"communityId,omitempty"`
 		Sticker           *StickerAlias                    `json:"sticker"`
 		CommandParameters *CommandParameters               `json:"commandParameters"`
 		Timestamp         uint64                           `json:"timestamp"`
@@ -192,7 +192,7 @@ func (m *Message) MarshalJSON() ([]byte, error) {
 		EnsName:           m.EnsName,
 		Image:             m.Base64Image,
 		Audio:             m.Base64Audio,
-		CommunityID:    m.CommunityID,
+		CommunityID:       m.CommunityID,
 		Timestamp:         m.Timestamp,
 		ContentType:       m.ContentType,
 		Mentions:          m.Mentions,

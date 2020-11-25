@@ -321,6 +321,10 @@ func (api *PublicAPI) Communities(parent context.Context) ([]*communities.Commun
 	return api.service.messenger.Communities()
 }
 
+func (api *PublicAPI) JoinedCommunities(parent context.Context) ([]*communities.Community, error) {
+	return api.service.messenger.JoinedCommunities()
+}
+
 func (api *PublicAPI) JoinCommunity(parent context.Context, communityID string) (*protocol.MessengerResponse, error) {
 	return api.service.messenger.JoinCommunity(communityID)
 }

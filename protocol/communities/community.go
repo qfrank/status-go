@@ -49,11 +49,11 @@ func New(config Config) (*Community, error) {
 
 func (o *Community) MarshalJSON() ([]byte, error) {
 	item := struct {
-		ID                             string `json:"id"`
 		*protobuf.CommunityDescription `json:"description"`
-		Admin                          bool `json:"admin"`
-		Verified                       bool `json:"verified"`
-		Joined                         bool `json:"joined"`
+		ID                             string `json:"id"`
+		Admin                          bool   `json:"admin"`
+		Verified                       bool   `json:"verified"`
+		Joined                         bool   `json:"joined"`
 	}{
 		ID:                   o.IDString(),
 		CommunityDescription: o.config.CommunityDescription,

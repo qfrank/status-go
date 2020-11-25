@@ -108,12 +108,12 @@ func (c *Chat) OneToOne() bool {
 	return c.ChatType == ChatTypeOneToOne
 }
 
-// Strips out the local prefix of the community-id
 func (c *Chat) CommunityChatID() string {
 	if c.ChatType != ChatTypeCommunityChat {
 		return c.ID
 	}
 
+	// Strips out the local prefix of the community-id
 	return c.ID[pkStringLength:]
 }
 

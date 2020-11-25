@@ -11,7 +11,6 @@ import (
 
 	"github.com/status-im/status-go/eth-node/crypto"
 	"github.com/status-im/status-go/eth-node/types"
-	"github.com/status-im/status-go/protocol/common"
 	"github.com/status-im/status-go/protocol/protobuf"
 )
 
@@ -165,7 +164,6 @@ func (m *Manager) CreateChat(idString string, chat *protobuf.CommunityChat) (*Co
 		return nil, nil, err
 	}
 
-	m.logger.Debug("SAVING", zap.Any("ORG", org))
 	err = m.persistence.SaveCommunity(org)
 	if err != nil {
 		return nil, nil, err
@@ -179,14 +177,12 @@ func (m *Manager) CreateChat(idString string, chat *protobuf.CommunityChat) (*Co
 
 func (m *Manager) HandleCommunityDescriptionMessage(signer *ecdsa.PublicKey, description *protobuf.CommunityDescription, payload []byte) (*Community, error) {
 	id := crypto.CompressPubkey(signer)
-	m.logger.Debug("INITIALIZING", zap.String("id", types.EncodeHex(id)))
 	org, err := m.persistence.GetByID(id)
 	if err != nil {
 		return nil, err
 	}
 
 	if org == nil {
-		m.logger.Debug("initializing new community")
 		config := Config{
 			CommunityDescription:          description,
 			Logger:                        m.logger,
@@ -277,7 +273,6 @@ func (m *Manager) LeaveCommunity(idString string) (*Community, error) {
 		return nil, ErrOrgNotFound
 	}
 	org.Leave()
-	m.logger.Debug("SAVING", zap.Any("ORG", org))
 	err = m.persistence.SaveCommunity(org)
 	if err != nil {
 		return nil, err
@@ -325,6 +320,5 @@ func (m *Manager) CanPost(pk *ecdsa.PublicKey, orgIDString, chatID string, grant
 	if org == nil {
 		return false, nil
 	}
-	m.logger.Debug("CANPOST", zap.Any("org", org), zap.String("chat-id", chatID), zap.String("pk", common.PubkeyToHex(pk)))
 	return org.CanPost(pk, chatID, grant)
 }
