@@ -586,8 +586,8 @@ func (api *PublicAPI) Echo(ctx context.Context, message string) (string, error) 
 //
 
 // GetIdentityImages returns an array of json marshalled IdentityImages assigned to the user's identity
-func (api *PublicAPI) GetIdentityImages(keyUid string) (string, error) {
-	iis, err := api.service.multiAccountsDB.GetIdentityImages(keyUid)
+func (api *PublicAPI) GetIdentityImages(keyUID string) (string, error) {
+	iis, err := api.service.multiAccountsDB.GetIdentityImages(keyUID)
 	if err != nil {
 		return "", err
 	}
@@ -598,8 +598,8 @@ func (api *PublicAPI) GetIdentityImages(keyUid string) (string, error) {
 }
 
 // GetIdentityImage returns a json object representing the image with the given name
-func (api *PublicAPI) GetIdentityImage(keyUid, name string) (string, error) {
-	ii, err := api.service.multiAccountsDB.GetIdentityImage(keyUid, name)
+func (api *PublicAPI) GetIdentityImage(keyUID, name string) (string, error) {
+	ii, err := api.service.multiAccountsDB.GetIdentityImage(keyUID, name)
 	if err != nil {
 		return "", err
 	}
@@ -613,13 +613,13 @@ func (api *PublicAPI) GetIdentityImage(keyUid, name string) (string, error) {
 // The resulting image(s) will be stored in the DB along with other user account information.
 // aX and aY represent the pixel coordinates of the upper left corner of the image's cropping area
 // bX and bY represent the pixel coordinates of the lower right corner of the image's cropping area
-func (api *PublicAPI) StoreIdentityImage(keyUid, filepath string, aX, aY, bX, bY int) (string, error) {
+func (api *PublicAPI) StoreIdentityImage(keyUID, filepath string, aX, aY, bX, bY int) (string, error) {
 	iis, err := images.GenerateIdentityImages(filepath, aX, aY, bX, bY)
 	if err != nil {
 		return "", err
 	}
 
-	err = api.service.multiAccountsDB.StoreIdentityImages(keyUid, iis)
+	err = api.service.multiAccountsDB.StoreIdentityImages(keyUID, iis)
 	if err != nil {
 		return "", err
 	}
@@ -630,8 +630,8 @@ func (api *PublicAPI) StoreIdentityImage(keyUid, filepath string, aX, aY, bX, bY
 }
 
 // DeleteIdentityImage deletes an IdentityImage from the db with the given name
-func (api *PublicAPI) DeleteIdentityImage(keyUid string) error {
-	return api.service.multiAccountsDB.DeleteIdentityImage(keyUid)
+func (api *PublicAPI) DeleteIdentityImage(keyUID string) error {
+	return api.service.multiAccountsDB.DeleteIdentityImage(keyUID)
 }
 
 // -----
