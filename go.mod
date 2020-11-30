@@ -64,7 +64,7 @@ require (
 	github.com/stretchr/testify v1.5.1
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/tsenart/tb v0.0.0-20181025101425-0d2499c8b6e9
-	github.com/vacp2p/mvds v0.0.23
+	github.com/vacp2p/mvds v0.0.24-0.20201124060106-26d8e94130d8
 	github.com/wealdtech/go-ens/v3 v3.3.0
 	go.uber.org/multierr v1.4.0 // indirect
 	go.uber.org/zap v1.13.0

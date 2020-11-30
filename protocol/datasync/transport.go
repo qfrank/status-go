@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
+	"math"
+	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/vacp2p/mvds/protobuf"
@@ -14,7 +16,14 @@ import (
 	datasyncpeer "github.com/status-im/status-go/protocol/datasync/peer"
 )
 
+const backoffInterval = 30
+
 var errNotInitialized = errors.New("Datasync transport not initialized")
+var DatasyncTicker = 300 * time.Millisecond
+
+// It's easier to calculate nextEpoch if we consider seconds as a unit rather than
+// 300 ms, so we multiply the result by the ratio
+var offsetToSecond = uint64(time.Second / DatasyncTicker)
 
 // payloadTagSize is the tag size for the protobuf.Payload message which is number of fields * 2 bytes
 var payloadTagSize = 14
@@ -50,7 +59,6 @@ func (t *NodeTransport) Watch() transport.Packet {
 }
 
 func (t *NodeTransport) Send(_ state.PeerID, peer state.PeerID, payload protobuf.Payload) error {
-	var lastError error
 	if t.dispatch == nil {
 		return errNotInitialized
 	}
@@ -58,23 +66,32 @@ func (t *NodeTransport) Send(_ state.PeerID, peer state.PeerID, payload protobuf
 	payloads := splitPayloadInBatches(&payload, int(t.maxMessageSize))
 	for _, payload := range payloads {
 
+		if !payload.IsValid() {
+			t.logger.Error("payload is invalid")
+			continue
+		}
+
 		data, err := proto.Marshal(payload)
 		if err != nil {
-			return err
+			t.logger.Error("failed to marshal payload")
+			continue
 		}
 
 		publicKey, err := datasyncpeer.IDToPublicKey(peer)
 		if err != nil {
-			return err
+			t.logger.Error("failed to conver id to public key", zap.Error(err))
+			continue
 		}
+		// We don't return an error otherwise datasync will keep
+		// re-trying sending at each epoch
 		err = t.dispatch(context.Background(), publicKey, data, payload)
 		if err != nil {
-			lastError = err
 			t.logger.Error("failed to send message", zap.Error(err))
 			continue
 		}
 	}
-	return lastError
+
+	return nil
 }
 
 func splitPayloadInBatches(payload *protobuf.Payload, maxSizeBytes int) []*protobuf.Payload {
@@ -149,5 +166,5 @@ func splitPayloadInBatches(payload *protobuf.Payload, maxSizeBytes int) []*proto
 // CalculateSendTime calculates the next epoch
 // at which a message should be sent.
 func CalculateSendTime(count uint64, time int64) int64 {
-	return time + int64(count*2) // @todo this should match that time is increased by whisper periods, aka we only retransmit the first time when a message has expired.
+	return time + int64(uint64(math.Exp2(float64(count-1)))*backoffInterval*offsetToSecond)
 }
