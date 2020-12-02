@@ -110,6 +110,8 @@ type Waku struct {
 	cancelBridge chan struct{}
 
 	logger *zap.Logger
+
+	publishMu sync.Mutex
 }
 
 // New creates a Waku client ready to communicate through the Ethereum P2P network.
@@ -198,6 +200,14 @@ func (w *Waku) MinPow() float64 {
 	w.settingsMu.RLock()
 	defer w.settingsMu.RUnlock()
 	return w.settings.MinPow
+}
+
+func (w *Waku) Lock() {
+	w.publishMu.Lock()
+}
+
+func (w *Waku) Unlock() {
+	w.publishMu.Unlock()
 }
 
 // SetMinimumPoW sets the minimal PoW required by this node

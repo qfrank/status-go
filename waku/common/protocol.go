@@ -101,4 +101,7 @@ type WakuHost interface {
 
 	OnBatchAcknowledged(common.Hash, Peer) error
 	OnP2PRequestCompleted([]byte, Peer) error
+
+	Lock()
+	Unlock()
 }

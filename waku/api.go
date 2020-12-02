@@ -274,6 +274,9 @@ func (api *PublicWakuAPI) Post(ctx context.Context, req NewMessage) (hexutil.Byt
 		return nil, err
 	}
 
+	api.w.Lock()
+	defer api.w.Unlock()
+
 	var result []byte
 	env, err := msg.Wrap(params, api.w.CurrentTime())
 	if err != nil {

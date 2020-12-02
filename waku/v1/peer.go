@@ -520,6 +520,8 @@ func (p *Peer) expire() {
 // broadcast iterates over the collection of envelopes and transmits yet unknown
 // ones over the network.
 func (p *Peer) broadcast() error {
+	p.host.Lock()
+	defer p.host.Unlock()
 	envelopes := p.host.Envelopes()
 	bundle := make([]*common.Envelope, 0, len(envelopes))
 	for _, envelope := range envelopes {
@@ -531,15 +533,20 @@ func (p *Peer) broadcast() error {
 	if len(bundle) == 0 {
 		return nil
 	}
-
-	batchHash, err := sendBundle(p.rw, bundle)
-	if err != nil {
-		p.logger.Debug("failed to deliver envelopes", zap.String("peerID", types.EncodeHex(p.ID())), zap.Error(err))
-		return err
-	}
+	p.logger.Debug("sending bundle",
+		zap.String("peerID", types.EncodeHex(p.ID())),
+		zap.Int("count", len(bundle)))
 
 	// mark envelopes only if they were successfully sent
 	for _, e := range bundle {
+		p.logger.Debug("sending bundle 1", zap.String("peerID", types.EncodeHex(p.ID())), zap.String("hash", e.Hash().String()))
+
+		batchHash, err := sendBundle(p.rw, []*common.Envelope{e})
+		if err != nil {
+			p.logger.Debug("failed to deliver envelopes", zap.String("peerID", types.EncodeHex(p.ID())), zap.Error(err))
+			return err
+
+		}
 		p.Mark(e)
 		event := common.EnvelopeEvent{
 			Event: common.EventEnvelopeSent,
@@ -550,6 +557,7 @@ func (p *Peer) broadcast() error {
 			event.Batch = batchHash
 		}
 		p.host.SendEnvelopeEvent(event)
+		p.logger.Debug("sent bundle 1", zap.String("peerID", types.EncodeHex(p.ID())), zap.String("hash", e.Hash().String()))
 	}
 	p.logger.Debug("broadcasted bundles successfully", zap.String("peerID", types.EncodeHex(p.ID())), zap.Int("count", len(bundle)))
 	return nil
