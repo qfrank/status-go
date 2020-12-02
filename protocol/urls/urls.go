@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 type OembedData struct {
@@ -18,6 +19,7 @@ type LinkPreviewData struct {
 	Site         string `json:"site"`
 	Title        string `json:"title"`
 	ThumbnailURL string `json:"thumbnailUrl"`
+	ContentType  string `json:"contentType"`
 }
 
 type Site struct {
@@ -36,6 +38,14 @@ func LinkPreviewWhitelist() []Site {
 		Site{
 			Title:   "YouTube shortener",
 			Address: "youtu.be",
+		},
+		Site{
+			Title:   "Tenor GIFs",
+			Address: "tenor.com",
+		},
+		Site{
+			Title:   "GIPHY GIFs",
+			Address: "giphy.com",
 		},
 	}
 }
@@ -87,9 +97,23 @@ func GetLinkPreviewData(link string) (previewData LinkPreviewData, err error) {
 		return previewData, fmt.Errorf("Cant't parse link %s", link)
 	}
 
-	switch url.Hostname() {
-	case "youtube.com", "www.youtube.com", "youtu.be":
-		return GetYoutubePreviewData(link)
+	hostname := strings.ToLower(url.Hostname())
+	youtubeHostnames := []string{"youtube.com", "www.youtube.com", "youtu.be"}
+	for _, youtubeHostname := range youtubeHostnames {
+		if youtubeHostname == hostname {
+			return GetYoutubePreviewData(link)
+		}
+	}
+	for _, site := range LinkPreviewWhitelist() {
+		if strings.HasSuffix(hostname, site.Address) {
+			content, contentErr := GetURLContent(link)
+			if contentErr != nil {
+				return previewData, contentErr
+			}
+			previewData.ThumbnailURL = link
+			previewData.ContentType = http.DetectContentType(content)
+			return previewData, nil
+		}
 	}
 
 	return previewData, fmt.Errorf("Link %s isn't whitelisted. Hostname - %s", link, url.Hostname())
