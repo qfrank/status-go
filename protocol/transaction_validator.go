@@ -147,8 +147,14 @@ func (t *TransactionValidator) validateTokenTransfer(parameters *common.CommandP
 }
 
 func (t *TransactionValidator) validateToAddress(specifiedTo, actualTo string) bool {
+
+	t.logger.Debug("validating to address", zap.String("specified", specifiedTo), zap.String("actual", actualTo))
 	if len(specifiedTo) != 0 && (!strings.EqualFold(specifiedTo, actualTo) || !t.addresses[strings.ToLower(actualTo)]) {
 		return false
+	}
+
+	for addr, _ := range t.addresses {
+		t.logger.Debug("watched to addresses", zap.String("addr", addr))
 	}
 
 	return t.addresses[actualTo]
