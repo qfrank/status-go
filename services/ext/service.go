@@ -59,6 +59,7 @@ type Service struct {
 	identity         *ecdsa.PrivateKey
 	cancelMessenger  chan struct{}
 	storage          db.TransactionalStorage
+	logger           *zap.Logger
 	n                types.Node
 	config           params.ShhextConfig
 	mailMonitor      *MailRequestMonitor
@@ -116,6 +117,7 @@ func (s *Service) GetPeer(rawURL string) (*enode.Node, error) {
 }
 
 func (s *Service) InitProtocol(identity *ecdsa.PrivateKey, db *sql.DB, logger *zap.Logger) error {
+	s.logger = logger
 	if !s.config.PFSEnabled {
 		return nil
 	}
@@ -312,11 +314,16 @@ func (s *Service) verifyTransactionLoop(tick time.Duration, cancel <-chan struct
 				log.Error("failed to retrieve accounts", "err", err)
 			}
 			var wallets []types.Address
+			s.logger.Debug("got accoutns", zap.Any("accounts", accounts), zap.Int("accounts length", len(accounts)))
 			for _, account := range accounts {
+				s.logger.Debug("wallet", zap.Any("account", account), zap.Bool("wallet", account.Wallet), zap.Any("address", account.Address))
 				if account.Wallet {
+					s.logger.Debug("adding account", zap.Any("account", account.Address))
 					wallets = append(wallets, types.BytesToAddress(account.Address.Bytes()))
 				}
 			}
+
+			s.logger.Debug("built wallets", zap.Any("wallets", wallets), zap.Int("count", len(wallets)))
 
 			response, err := s.messenger.ValidateTransactions(ctx, wallets)
 			if err != nil {

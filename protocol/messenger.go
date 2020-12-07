@@ -3392,7 +3392,7 @@ func (m *Messenger) ValidateTransactions(ctx context.Context, addresses []types.
 	modifiedChats := make(map[string]bool)
 
 	logger := m.logger.With(zap.String("site", "ValidateTransactions"))
-	logger.Debug("Validating transactions")
+	logger.Debug("Validating transactions", zap.Any("Addresses", addresses), zap.Int("coutn", len(addresses)))
 	txs, err := m.persistence.TransactionsToValidate()
 	if err != nil {
 		logger.Error("Error pulling", zap.Error(err))
