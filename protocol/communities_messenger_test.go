@@ -138,7 +138,7 @@ func (s *MessengerCommunitiesSuite) TestRetrieveCommunity() {
 	s.Require().NoError(err)
 	communities, err := alice.Communities()
 	s.Require().NoError(err)
-	s.Require().Len(communities, 1)
+	s.Require().Len(communities, 2)
 	s.Require().Len(response.Communities, 1)
 	s.Require().Len(response.Messages, 1)
 	s.Require().Equal(community.IDString(), response.Messages[0].CommunityID)
@@ -223,7 +223,7 @@ func (s *MessengerCommunitiesSuite) TestJoinCommunity() {
 	s.Require().NoError(err)
 	communities, err := s.alice.Communities()
 	s.Require().NoError(err)
-	s.Require().Len(communities, 1)
+	s.Require().Len(communities, 2)
 	s.Require().Len(response.Communities, 1)
 	s.Require().Len(response.Messages, 1)
 	s.Require().Equal(community.IDString(), response.Messages[0].CommunityID)
@@ -277,7 +277,7 @@ func (s *MessengerCommunitiesSuite) TestJoinCommunity() {
 	s.Require().NoError(err)
 	communities, err = s.alice.Communities()
 	s.Require().NoError(err)
-	s.Require().Len(communities, 1)
+	s.Require().Len(communities, 2)
 	s.Require().Len(response.Communities, 1)
 	s.Require().Len(response.Chats, 1)
 
@@ -342,7 +342,7 @@ func (s *MessengerCommunitiesSuite) TestInviteUserToCommunity() {
 	s.Require().NoError(err)
 	communities, err := s.alice.Communities()
 	s.Require().NoError(err)
-	s.Require().Len(communities, 1)
+	s.Require().Len(communities, 2)
 	s.Require().Len(response.Communities, 1)
 
 	community = response.Communities[0]
@@ -408,7 +408,7 @@ func (s *MessengerCommunitiesSuite) TestPostToCommunityChat() {
 	s.Require().NoError(err)
 	communities, err := s.alice.Communities()
 	s.Require().NoError(err)
-	s.Require().Len(communities, 1)
+	s.Require().Len(communities, 2)
 	s.Require().Len(response.Communities, 1)
 
 	// We join the org

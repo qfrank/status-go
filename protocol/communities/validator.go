@@ -15,7 +15,7 @@ func validateCommunityChat(desc *protobuf.CommunityDescription, chat *protobuf.C
 		return ErrInvalidCommunityDescriptionUnknownChatAccess
 	}
 
-	for pk, _ := range chat.Members {
+	for pk := range chat.Members {
 		if desc.Members == nil {
 			return ErrInvalidCommunityDescriptionMemberInChatButNotInOrg
 		}

@@ -2,11 +2,14 @@ package protocol
 
 import (
 	"github.com/status-im/status-go/protocol/common"
+	"github.com/status-im/status-go/protocol/communities"
 	"github.com/status-im/status-go/protocol/encryption/multidevice"
+	"github.com/status-im/status-go/protocol/transport"
 )
 
 type MessengerResponse struct {
 	Chats            []*Chat                         `json:"chats,omitempty"`
+	RemovedChats     []string                        `json:"removedChats,omitempty"`
 	Messages         []*common.Message               `json:"messages,omitempty"`
 	Contacts         []*Contact                      `json:"contacts,omitempty"`
 	Installations    []*multidevice.Installation     `json:"installations,omitempty"`

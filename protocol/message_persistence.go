@@ -181,7 +181,7 @@ func (db sqlitePersistence) tableUserMessagesScanAllFields(row scanner, message 
 			Base64Image:     quotedImage.String,
 			AudioDurationMs: uint64(quotedAudioDuration.Int64),
 			Base64Audio:     quotedAudio.String,
-			CommunityID:  quotedCommunityID.String,
+			CommunityID:     quotedCommunityID.String,
 		}
 	}
 	message.Alias = alias.String

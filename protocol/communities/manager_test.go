@@ -7,9 +7,10 @@ import (
 	"github.com/golang/protobuf/proto"
 	_ "github.com/mutecomm/go-sqlcipher" // require go-sqlcipher that overrides default implementation
 
+	"github.com/stretchr/testify/suite"
+
 	"github.com/status-im/status-go/protocol/protobuf"
 	"github.com/status-im/status-go/protocol/sqlite"
-	"github.com/stretchr/testify/suite"
 )
 
 func TestManagerSuite(t *testing.T) {

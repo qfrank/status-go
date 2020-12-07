@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/golang/protobuf/proto"
+
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -22,8 +23,10 @@ type Manager struct {
 
 func NewManager(db *sql.DB, logger *zap.Logger) (*Manager, error) {
 	var err error
-	if logger, err = zap.NewDevelopment(); err != nil {
-		return nil, errors.Wrap(err, "failed to create a logger")
+	if logger == nil {
+		if logger, err = zap.NewDevelopment(); err != nil {
+			return nil, errors.Wrap(err, "failed to create a logger")
+		}
 	}
 
 	return &Manager{
@@ -61,7 +64,6 @@ func (m *Manager) publish(subscription *Subscription) {
 			m.logger.Warn("subscription channel full, dropping message")
 		}
 	}
-	return
 }
 
 func (m *Manager) All() ([]*Community, error) {

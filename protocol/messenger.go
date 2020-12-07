@@ -79,8 +79,7 @@ type Messenger struct {
 	database                   *sql.DB
 	quit                       chan struct{}
 
-	mutex    sync.Mutex
-	orgMutex sync.Mutex
+	mutex sync.Mutex
 }
 
 type dbConfig struct {
@@ -1589,7 +1588,7 @@ func (m *Messenger) LeaveCommunity(communityID string) (*MessengerResponse, erro
 	}
 
 	// Make chat inactive
-	for chatID, _ := range org.Chats() {
+	for chatID := range org.Chats() {
 		orgChatID := communityID + chatID
 		err := m.DeleteChat(orgChatID)
 		if err != nil {
